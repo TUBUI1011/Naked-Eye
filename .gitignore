@@ -1,0 +1,13 @@
+# Các biến môi trường (Chứa Key Azure)
+.env
+
+# Thư mục thư viện (Rất nặng, không cần đẩy lên)
+node_modules/
+
+# Thư mục chứa code sau khi biên dịch
+dist/
+
+# Các file log lỗi
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
