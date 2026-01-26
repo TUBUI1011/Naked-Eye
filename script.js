@@ -101,56 +101,6 @@ const products = [
   },
   {
     area: "Packing",
-    group: "MILO",
-    productionLine: "OLYMPIA 2",
-    shelfLife: 12,
-    batchSuffix: "D",
-    batchId: "pack-batchCodeO2",
-    expiryBagId: "pack-expirationDateBagO2",
-    expiryCartonId: "pack-expirationDateCartonO2",
-  },
-  {
-    area: "Packing",
-    group: "MILO",
-    productionLine: "SU 52",
-    shelfLife: 12,
-    batchSuffix: "F",
-    batchId: "pack-batchCodeSu52",
-    expiryBagId: "pack-expirationDateBagSu52",
-    expiryCartonId: "pack-expirationDateCartonSu52",
-  },
-  {
-    area: "Packing",
-    group: "MILO",
-    productionLine: "NALBACH",
-    shelfLife: 12,
-    batchSuffix: "G",
-    batchId: "pack-batchCodeNal",
-    expiryBagId: "pack-expirationDateBagNal",
-    expiryCartonId: "pack-expirationDateCartonNal",
-  },
-  {
-    area: "Packing",
-    group: "MILO",
-    productionLine: "SANKO 10",
-    shelfLife: 12,
-    batchSuffix: "H",
-    batchId: "pack-batchCode10",
-    expiryBagId: "pack-expirationDateBag10",
-    expiryCartonId: "pack-expirationDateCarton10",
-  },
-  {
-    area: "Packing",
-    group: "MILO",
-    productionLine: "SANKO 10",
-    shelfLife: 10,
-    batchSuffix: "H",
-    batchId: "pack-batchCodeMilk10",
-    expiryBagId: "pack-expirationDateBagMilk10",
-    expiryCartonId: "pack-expirationDateCartonMilk10",
-  },
-  {
-    area: "Packing",
     group: "PSC",
     productionLine: "MESPACK",
     shelfLife: 24,
@@ -541,16 +491,20 @@ function parseDateString(dateString) {
 function updateDateTime() {
   const now = new Date();
   const julianDay = getJulianDay(now);
+  const formattedDate = formatDateWithSlashes(now);
+  const formattedTime = now.toTimeString().split(" ")[0];
 
   // Cập nhật ngày giờ hiện tại
   document.getElementById("currentDateTime").textContent =
-    now.toLocaleString("vi-VN");
+    `${formattedDate} ${formattedTime}`;
   // Cập nhật ngày Julian
-  document.getElementById("julianDaily").textContent = julianDay;
-  // Cập nhật batch code ví dụ (dùng hậu tố 'X' làm ví dụ)
+  document.getElementById("julianDaily").textContent = String(
+    julianDay,
+  ).padStart(3, "0");
+  // Cập nhật batch code ví dụ (không có hậu tố)
   document.getElementById("currentBatchCode").textContent = formatBatchCode(
     now,
-    "X",
+    "",
   );
 }
 
@@ -607,9 +561,10 @@ function calculateAndDisplayAll() {
         bagFormat = `${formatDateWithSlashes(
           expiryDate,
         )}<br>${time} ${batchCode}`;
-      } else if (product.group === "2IN1") {
-        bagFormat = formatDateWithSlashes(expiryDate);
+      } else if (product.group === "2IN1" || product.group === "3IN1") {
+        bagFormat = `${formatDate(expiryDate)}<br>${batchCode}`;
       } else {
+        // Giữ lại định dạng cũ cho các nhóm khác như MILO
         bagFormat = formatDate(expiryDate);
       }
 
@@ -617,10 +572,19 @@ function calculateAndDisplayAll() {
       if (bagEl) bagEl.innerHTML = bagFormat; // Dùng innerHTML để thẻ <br> hoạt động
 
       // Cập nhật HSD Carton (tùy nhóm sản phẩm)
-      const cartonFormat =
-        product.group === "PSC"
-          ? `${batchCode} ${formatDate(expiryDate)} 00:00`
-          : `${batchCode} HSD ${formatDateShortYear(expiryDate)}`;
+      let cartonFormat;
+      const time = today.toTimeString().substring(0, 5); // Lấy HH:MM
+
+      if (product.group === "PSC") {
+        // Định dạng mới cho PSC: Batchcode DD/MM/YYYY HH:MM
+        cartonFormat = `${batchCode} ${formatDateWithSlashes(
+          expiryDate,
+        )} ${time}`;
+      } else {
+        // Giữ định dạng cũ cho các nhóm khác (2IN1, 3IN1)
+        cartonFormat = `${batchCode} HSD ${formatDateShortYear(expiryDate)}`;
+      }
+
       const cartonEl = document.getElementById(product.expiryCartonId);
       if (cartonEl) cartonEl.textContent = cartonFormat;
     }
@@ -972,7 +936,7 @@ async function callAzureOcrApi(base64Image) {
  * Tự động thử lại với các kịch bản khác nhau nếu nhận dạng thất bại.
  */
 async function captureAndValidate() {
-  const video = document.getElementById("video");
+  const video = document.getElementById("videoElement"); // Sửa 'video' thành 'videoElement'
   const viewfinder = document.getElementById("viewfinder");
   const validationResult = document.getElementById("validationResult");
   const spinner = document.getElementById("spinner");
