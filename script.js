@@ -910,17 +910,20 @@ function stopCamera() {
 async function callValidationApi(base64Image, expectedText, scenario) {
   try {
     // Thay đổi URL này thành URL của backend khi deploy
-    const response = await fetch("http://localhost:3000/api/validate-code", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      "http://192.168.1.214:3000/api/validate-code",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: base64Image,
+          expectedText: expectedText,
+          scenario: scenario, // Gửi thêm kịch bản xử lý
+        }),
       },
-      body: JSON.stringify({
-        image: base64Image,
-        expectedText: expectedText,
-        scenario: scenario, // Gửi thêm kịch bản xử lý
-      }),
-    });
+    );
 
     if (!response.ok) {
       const errorData = await response.json();
