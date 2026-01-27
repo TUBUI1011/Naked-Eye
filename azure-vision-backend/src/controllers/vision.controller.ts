@@ -1,14 +1,46 @@
-import { Request, Response } from "express";
-import * as visionService from "../services/vision.service";
+import { Request, Response, NextFunction } from "express";
+import { VisionService } from "../services/vision.service";
 
 export class VisionController {
-  public async analyzeImage(req: Request, res: Response): Promise<void> {
+  // Service nhận qua constructor từ file routes
+  constructor(private readonly visionService: VisionService) {}
+
+  // Chỉ dùng 1 hàm duy nhất xử lý request Express
+  public validateCode = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const imageBuffer = req.body.image; // Assuming the image is sent in the request body
-      const text = await visionService.analyzeImageFromBuffer(imageBuffer);
-      res.status(200).json({ text });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to analyze image." });
+      const { image, expectedText, scenario } = req.body;
+
+      // 1. Kiểm tra dữ liệu đầu vào (Validation)
+      if (!image || typeof image !== "string") {
+        return res.status(400).json({ 
+          message: "Lỗi: 'image' bắt buộc và phải là chuỗi Base64" 
+        });
+      }
+      
+      if (!expectedText || typeof expectedText !== "string") {
+        return res.status(400).json({ 
+          message: "Lỗi: 'expectedText' bắt buộc và phải là chuỗi kỹ tự" 
+        });
+      }
+
+      // 2. Gọi logic xử lý ảnh từ Service
+      const result = await this.visionService.processAndValidateImage(
+        image,
+        expectedText,
+        scenario // (Optional) có thể là undefined
+      );
+
+      // 3. Trả về kết quả
+      return res.status(200).json(result);
+
+    } catch (err) {
+      console.error("Lỗi tại VisionController:", err);
+      // Chuyển lỗi xuống middleware xử lý lỗi chung (nếu có)
+      next(err);
     }
-  }
+  };
 }

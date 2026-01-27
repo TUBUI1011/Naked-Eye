@@ -18,7 +18,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // Đăng ký route với tiền tố /api/vision
-app.use("/api/vision", visionRoutes);
+app.use("/api", visionRoutes);
 
 app.use(errorHandler);
 

@@ -906,16 +906,20 @@ function stopCamera() {
   validationResult.style.display = "none";
 }
 
-// Hàm mới để gọi API backend
-async function callAzureOcrApi(base64Image) {
+// Hàm mới để gọi API backend, gửi cả ảnh, chuỗi mong đợi và kịch bản xử lý
+async function callValidationApi(base64Image, expectedText, scenario) {
   try {
     // Thay đổi URL này thành URL của backend khi deploy
-    const response = await fetch("http://localhost:3000/api/vision/analyze", {
+    const response = await fetch("http://localhost:3000/api/validate-code", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ image: base64Image }),
+      body: JSON.stringify({
+        image: base64Image,
+        expectedText: expectedText,
+        scenario: scenario, // Gửi thêm kịch bản xử lý
+      }),
     });
 
     if (!response.ok) {
@@ -923,20 +927,26 @@ async function callAzureOcrApi(base64Image) {
       throw new Error(errorData.message || "Backend API error");
     }
 
-    const data = await response.json();
-    return data.text; // Giả sử backend trả về { text: "..." }
+    // Backend sẽ trả về kết quả cuối cùng
+    // ví dụ: { success: true, foundText: "...", expectedText: "..." }
+    return await response.json();
   } catch (error) {
-    console.error("Error calling backend API:", error);
-    throw error;
+    console.error("Error calling validation API:", error);
+    // Trả về một đối tượng lỗi để FE có thể xử lý
+    return {
+      success: false,
+      error: error.message,
+      foundText: "N/A",
+      expectedText: expectedText,
+    };
   }
 }
 
 /**
- * Chụp ảnh, áp dụng các kịch bản xử lý ảnh và gửi đi nhận dạng.
- * Tự động thử lại với các kịch bản khác nhau nếu nhận dạng thất bại.
+ * Chụp ảnh, gửi dữ liệu đến backend để xử lý và nhận kết quả cuối cùng.
  */
 async function captureAndValidate() {
-  const video = document.getElementById("videoElement"); // Sửa 'video' thành 'videoElement'
+  const video = document.getElementById("videoElement");
   const viewfinder = document.getElementById("viewfinder");
   const validationResult = document.getElementById("validationResult");
   const spinner = document.getElementById("spinner");
@@ -949,9 +959,9 @@ async function captureAndValidate() {
   spinner.style.display = "block";
   validationResult.style.display = "none";
 
-  // --- BƯỚC 1: CHỤP VÀ CẮT ẢNH GỐC ---
-  const originalCanvas = document.createElement("canvas");
-  const context = originalCanvas.getContext("2d");
+  // --- BƯỚC 1: CHỤP VÀ CẮT ẢNH ---
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
 
   const videoWidth = video.videoWidth;
   const videoHeight = video.videoHeight;
@@ -966,8 +976,8 @@ async function captureAndValidate() {
   const cropWidth = box.width * scaleX;
   const cropHeight = box.height * scaleY;
 
-  originalCanvas.width = cropWidth;
-  originalCanvas.height = cropHeight;
+  canvas.width = cropWidth;
+  canvas.height = cropHeight;
 
   context.drawImage(
     video,
@@ -981,117 +991,83 @@ async function captureAndValidate() {
     cropHeight,
   );
 
-  const originalImageBase64 = originalCanvas.toDataURL("image/png");
+  const imageBase64 = canvas.toDataURL("image/png");
 
-  // --- BƯỚC 2: TRIỂN KHAI LOGIC "AUTO-SWITCH" VỚI 3 KỊCH BẢN ---
+  // --- BƯỚC 2: LẤY CHUỖI KÝ TỰ CHUẨN ---
+  const productSelect = document.getElementById("productSelect");
+  const codeTypeSelect = document.getElementById("codeTypeSelect");
+  const product = products.find((p) => p.batchId === productSelect.value);
+  const selectedCodeType = codeTypeSelect.value;
 
-  // Hàm kiểm tra kết quả OCR có hợp lệ không
-  const isOcrResultValid = (text) => {
-    return text && text.replace(/[^a-zA-Z0-9]/g, "").length >= 5;
-  };
+  if (!product) {
+    validateOcrResult({ success: false, error: "Product not selected." });
+    spinner.style.display = "none";
+    return;
+  }
 
+  // --- BƯỚC MỚI: XÁC ĐỊNH KỊCH BẢN XỬ LÝ ẢNH ---
+  // Tự động xác định kịch bản dựa trên tên máy
+  // Ví dụ: SANKO thường dùng in phun (nét chấm), còn lại là in laser/solid
+  const lineName = product.productionLine.toUpperCase();
+  let scenario = "solid"; // Mặc định là solid
+  if (lineName.includes("SANKO")) {
+    scenario = "dot";
+  }
+  // Bạn có thể thêm các điều kiện khác ở đây, ví dụ:
+  // else if (lineName.includes("DOMINO")) {
+  //   scenario = "laser";
+  // }
+
+  const expectedElementId =
+    selectedCodeType === "stick"
+      ? "expiryId"
+      : selectedCodeType === "bag"
+        ? "expiryBagId"
+        : "expiryCartonId";
+  const expectedTextHTML = document.getElementById(
+    product[expectedElementId],
+  ).innerHTML;
+  // Chuyển <br> thành khoảng trắng để có chuỗi hoàn chỉnh
+  const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ");
+
+  // --- BƯỚC 3: GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
   try {
-    // Đọc ảnh gốc bằng Jimp
-    const image = await Jimp.read(originalImageBase64);
-
-    // Kịch bản 1: Nét liền (Dập/In đậm)
-    console.log("Trying Scenario 1: Solid Lines...");
-    const scenario1Image = image.clone().greyscale().contrast(0.5); // Jimp contrast is -1 to +1
-    const scenario1Base64 = await scenario1Image.getBase64Async(Jimp.MIME_PNG);
-    let ocrText = await callAzureOcrApi(scenario1Base64);
-
-    if (isOcrResultValid(ocrText)) {
-      console.log("Scenario 1 Success!");
-      validateOcrResult(ocrText);
-      return;
-    }
-
-    // Kịch bản 2: Nét chấm (Inkjet)
-    console.log("Scenario 1 failed. Trying Scenario 2: Dotted Lines...");
-    const scenario2Image = image.clone().greyscale().median(2).contrast(0.6);
-    const scenario2Base64 = await scenario2Image.getBase64Async(Jimp.MIME_PNG);
-    ocrText = await callAzureOcrApi(scenario2Base64);
-
-    if (isOcrResultValid(ocrText)) {
-      console.log("Scenario 2 Success!");
-      validateOcrResult(ocrText);
-      return;
-    }
-
-    // Kịch bản 3: Laser Code
-    console.log("Scenario 2 failed. Trying Scenario 3: Laser Code...");
-    const scenario3Image = image.clone().greyscale().contrast(1); // Max contrast
-    const scenario3Base64 = await scenario3Image.getBase64Async(Jimp.MIME_PNG);
-    ocrText = await callAzureOcrApi(scenario3Base64);
-
-    if (isOcrResultValid(ocrText)) {
-      console.log("Scenario 3 Success!");
-      validateOcrResult(ocrText);
-      return;
-    }
-
-    // Nếu cả 3 kịch bản đều thất bại
-    console.log("All scenarios failed.");
-    validateOcrResult(""); // Gọi với chuỗi rỗng để hiển thị lỗi
+    // Truyền thêm 'scenario' vào hàm gọi API
+    const result = await callValidationApi(imageBase64, expectedText, scenario);
+    validateOcrResult(result);
   } catch (error) {
-    console.error("An error occurred during image processing or OCR:", error);
-    validationResult.textContent = `Error: ${error.message}`;
-    validationResult.className = "error";
-    validationResult.style.display = "block";
+    // Lỗi mạng hoặc lỗi không mong muốn khác
+    validateOcrResult({
+      success: false,
+      error: error.message,
+      foundText: "API Call Failed",
+      expectedText: expectedText,
+    });
   } finally {
     spinner.style.display = "none";
   }
 }
 
 /**
- * Xác thực văn bản được OCR trả về so với dữ liệu mong đợi.
- * @param {string} ocrText - Văn bản đã được nhận dạng.
+ * Hiển thị kết quả PASSED/FAILED trả về từ backend.
+ * @param {object} result - Đối tượng kết quả từ backend.
+ * @param {boolean} result.success - Trạng thái thành công/thất bại.
+ * @param {string} [result.foundText] - Văn bản OCR tìm được.
+ * @param {string} [result.expectedText] - Văn bản mong đợi.
+ * @param {string} [result.error] - Thông báo lỗi (nếu có).
  */
-function validateOcrResult(ocrText) {
-  const productSelect = document.getElementById("productSelect");
-  const codeTypeSelect = document.getElementById("codeTypeSelect");
+function validateOcrResult(result) {
   const validationResult = document.getElementById("validationResult");
 
-  const selectedProductId = productSelect.value;
-  const selectedCodeType = codeTypeSelect.value;
-  const product = products.find((p) => p.batchId === selectedProductId);
-
-  if (!product) {
-    validationResult.innerHTML = "<strong>Error:</strong> Product not found.";
-    validationResult.className = "alert alert-warning mt-3";
-    validationResult.style.display = "block";
-    return;
-  }
-
-  // Lấy giá trị đúng từ bảng hiển thị (dùng innerHTML vì có thể chứa <br>)
-  const expectedValueHTML = document.getElementById(
-    product[
-      selectedCodeType === "stick"
-        ? "expiryId"
-        : selectedCodeType === "bag"
-          ? "expiryBagId"
-          : "expiryCartonId"
-    ],
-  ).innerHTML;
-
-  // Chuyển <br> thành khoảng trắng và loại bỏ các thẻ HTML khác để so sánh
-  const expectedValue = expectedValueHTML
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]*>/g, "");
-
-  // Chuẩn hóa cả 2 chuỗi: xóa khoảng trắng, ký tự đặc biệt không mong muốn
-  const cleanOcr = ocrText.replace(/[^A-Z0-9/.:]/gi, "");
-  const cleanExpected = expectedValue.replace(/[^A-Z0-9/.:]/gi, "");
-
-  // Tạo Regex từ chuỗi mong đợi đã được làm sạch
-  // Điều này giúp tìm kiếm chính xác hơn, bỏ qua các lỗi nhận dạng nhỏ
-  const regex = new RegExp(cleanExpected.split("").join(".*"), "i");
-
-  if (regex.test(cleanOcr)) {
-    validationResult.innerHTML = `<strong><i class="fas fa-check-circle"></i> PASSED</strong><br>Expected: ${expectedValue}<br>Found: ${ocrText}`;
+  if (result.success) {
+    validationResult.innerHTML = `<strong><i class="fas fa-check-circle"></i> PASSED</strong><br>Expected: ${result.expectedText}<br>Found: ${result.foundText}`;
     validationResult.className = "alert alert-success mt-3";
   } else {
-    validationResult.innerHTML = `<strong><i class="fas fa-times-circle"></i> FAILED</strong><br>Expected: ${expectedValue}<br>Found: ${ocrText}`;
+    let errorMessage = `<strong><i class="fas fa-times-circle"></i> FAILED</strong><br>Expected: ${result.expectedText || "N/A"}<br>Found: ${result.foundText || "Nothing"}`;
+    if (result.error) {
+      errorMessage += `<br><small>Reason: ${result.error}</small>`;
+    }
+    validationResult.innerHTML = errorMessage;
     validationResult.className = "alert alert-danger mt-3";
   }
   validationResult.style.display = "block";

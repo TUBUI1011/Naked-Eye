@@ -1,62 +1,143 @@
-import createClient from "@azure-rest/ai-vision-image-analysis";
-import { AzureKeyCredential } from "@azure/core-auth";
-import * as config from "../config/index";
-import sharp from "sharp";
-import * as dotenv from "dotenv"; // để tải biến môi trường
-dotenv.config();
+import sharp from "sharp"; // Sửa lại cách import sharp để gọi được hàm sharp()
+import * as fs from "fs";
+import { ComputerVisionClient } from "@azure/cognitiveservices-computervision";
+import { ApiKeyCredentials } from "@azure/ms-rest-js";
+import { config } from "../config";
 
-// CHỈNH SỬA: Đưa việc khởi tạo vào trong hàm hoặc kiểm tra kỹ config
-export async function analyzeImageFromBuffer(
-  imageBase64: string,
-): Promise<string> {
-  try {
-    const endpoint = process.env.AZURE_VISION_ENDPOINT;
-    const key = process.env.AZURE_VISION_KEY;
+interface Scenario {
+  id: string;
+  process: (img: sharp.Sharp) => sharp.Sharp;
+}
 
-    if (!key || !endpoint) {
-      throw new Error(
-        "Azure Key hoặc Endpoint đang bị trống. Kiểm tra file .env",
+export class VisionService {
+  private readonly visionClient: ComputerVisionClient;
+
+  constructor() {
+    this.visionClient = new ComputerVisionClient(
+      new ApiKeyCredentials({
+        inHeader: {
+          "Ocp-Apim-Subscription-Key": config.azureVisionKey,
+        },
+      }),
+      config.azureVisionEndpoint,
+    );
+  }
+
+  async processAndValidateImage(
+    base64Image: string,
+    expectedText: string,
+    scenarioType?: string,
+  ) {
+    try {
+      const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, "");
+      const imageBuffer = Buffer.from(cleanBase64, "base64");
+
+      // Debug: Lưu ảnh gốc
+      try {
+        fs.writeFileSync("debug_original.jpg", imageBuffer);
+      } catch (e) {}
+
+      const scenarios: Scenario[] = [
+        {
+          id: "dot",
+          // Thêm kiểu dữ liệu : sharp.Sharp cho tham số img
+          process: (img: sharp.Sharp) =>
+            img.greyscale().median(2).resize(1200).threshold(140),
+        },
+        {
+          id: "laser",
+          process: (img: sharp.Sharp) =>
+            // Thay modulate({ contrast: ... }) bằng lienar(3) để tăng tương phản gấp 3 lần
+            img.greyscale().linear(3).threshold(150),
+        },
+        {
+          id: "solid",
+          process: (img: sharp.Sharp) =>
+            img.greyscale().sharpen().threshold(120),
+        },
+      ];
+
+      const currentScenario =
+        scenarios.find((s) => s.id === scenarioType) || scenarios[2];
+
+      // Gọi sharp(imageBuffer) sẽ không còn bị lỗi đỏ nhờ sửa import ở trên
+      const processedBuffer = await currentScenario
+        .process(sharp(imageBuffer))
+        .toBuffer();
+
+      // Debug: Lưu ảnh đã xử lý
+      try {
+        fs.writeFileSync(`debug_${currentScenario.id}.jpg`, processedBuffer);
+      } catch (e) {}
+
+      const ocrResult = await this.performOcr(processedBuffer);
+      const isSuccess = this.compareResults(ocrResult, expectedText);
+
+      return {
+        success: isSuccess,
+        foundText: ocrResult || "Không tìm thấy text",
+        expectedText,
+        matchDetail: isSuccess ? "PASSED" : "FAILED",
+        scenarioUsed: currentScenario.id,
+      };
+    } catch (error) {
+      console.error("Error inside VisionService:", error);
+      throw error;
+    }
+  }
+
+  private async performOcr(imageBuffer: Buffer): Promise<string> {
+    try {
+      const result = await this.visionClient.readInStream(imageBuffer);
+      const operationId = result.operationLocation?.split("/").pop();
+      if (!operationId) return "";
+
+      // Khai báo kiểu any hoặc khởi tạo null để tránh lỗi TS
+      let analysisResult: any = null;
+      let retries = 0;
+
+      do {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        analysisResult = await this.visionClient.getReadResult(operationId);
+        retries++;
+        if (retries > 10) break;
+      } while (
+        analysisResult.status === "running" ||
+        analysisResult.status === "notStarted"
       );
+
+      if (
+        analysisResult &&
+        analysisResult.status === "succeeded" &&
+        analysisResult.analyzeResult
+      ) {
+        return analysisResult.analyzeResult.readResults
+          .map((page: any) =>
+            page.lines.map((line: any) => line.text).join(" "),
+          )
+          .join(" ");
+      }
+
+      return "";
+    } catch (error) {
+      console.error("Azure OCR Error:", error);
+      return "";
     }
+  }
 
-    // --- THÊM ĐOẠN NÀY ĐỂ XỬ LÝ LỖI ĐỊNH DẠNG ---
-    // 1. Loại bỏ tiền tố "data:image/..." nếu có
-    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+  private compareResults(ocrText: string, expectedText: string): boolean {
+    if (!ocrText || !expectedText) return false;
 
-    // 2. Chuyển chuỗi sạch thành Buffer thực sự để Sharp hiểu được
-    const imageBuffer = Buffer.from(cleanBase64, "base64");
-    // --------------------------------------------
+    const clean = (str: string) =>
+      str
+        .toUpperCase()
+        .replace(/O/g, "0")
+        .replace(/[IL|]/g, "1")
+        .replace(/[^A-Z0-9]/g, "");
 
-    const client = createClient(endpoint, new AzureKeyCredential(key));
+    const cleanOcr = clean(ocrText);
+    const cleanExpected = clean(expectedText);
 
-    // 1. Dùng Sharp làm nét ảnh mã lô (Inkjet)
-    const processedBuffer = await sharp(imageBuffer)
-      .grayscale() // Chuyển về trắng đen để AI tập trung vào nét chữ
-      .threshold(120) // THÊM DÒNG NÀY: Giúp tách biệt rõ chữ đen trên nền trắng
-      .sharpen({ sigma: 2.0 }) // Tăng độ sắc nét lên một chút
-      .toBuffer();
-
-    // 2. Gửi ảnh lên Azure
-    const result = await client.path("/imageanalysis:analyze").post({
-      body: processedBuffer,
-      queryParameters: { features: ["Text"] },
-      contentType: "application/octet-stream",
-    });
-
-    const iaResult: any = result.body;
-
-    // 3. Trích xuất văn bản
-    if (iaResult.readResult && iaResult.readResult.blocks) {
-      return iaResult.readResult.blocks
-        .map((block: any) =>
-          block.lines.map((line: any) => line.text).join(" "),
-        )
-        .join("\n");
-    }
-
-    return "Không tìm thấy nội dung";
-  } catch (error) {
-    console.error("Lỗi tại Vision Service:", error);
-    throw error;
+    return cleanOcr.includes(cleanExpected);
   }
 }
