@@ -949,7 +949,7 @@ async function captureAndValidate() {
   const video = document.getElementById("videoElement");
   const viewfinder = document.getElementById("viewfinder");
   const validationResult = document.getElementById("validationResult");
-  const spinner = document.getElementById("spinner");
+  const spinner = document.getElementById("spinner"); // Biểu tượng loading
 
   if (!video.srcObject) {
     console.error("Camera is not running.");
