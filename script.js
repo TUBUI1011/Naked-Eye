@@ -911,7 +911,7 @@ async function callValidationApi(base64Image, expectedText, scenario) {
   try {
     // Thay đổi URL này thành URL của backend khi deploy
     const response = await fetch(
-      "http://192.168.1.214:3000/api/validate-code",
+      " https://alexia-unvitriolized-unhideously.ngrok-free.dev",
       {
         method: "POST",
         headers: {
