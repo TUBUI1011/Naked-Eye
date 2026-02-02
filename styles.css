@@ -196,20 +196,18 @@ body {
 }
 
 #viewfinder {
+  border: 2px solid red;
   position: absolute;
-  /* Canh giữa khung ngắm */
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  /* Kích thước mới: hình chữ nhật hẹp, dài */
+  top: 10%;
+  left: 10%;
   width: 80%;
-  height: 20%;
-  border: 3px solid rgba(255, 0, 0, 0.7);
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); /* Làm mờ vùng xung quanh */
-  border-radius: 8px;
+  height: 80%;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
 }
 
-#ocrStatus {
-  font-style: italic;
-  color: #6c757d;
+/* THÊM CLASS NÀY VÀO CUỐI FILE */
+.btn-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none; /* Ngăn chặn click */
 }

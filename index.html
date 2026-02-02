@@ -491,6 +491,22 @@
               <button id="startCameraBtn" class="btn btn-primary" disabled>
                 <i class="fas fa-camera"></i> Start Camera
               </button>
+              <!-- THÊM NÚT UPLOAD -->
+              <label
+                for="uploadInput"
+                id="uploadBtn"
+                class="btn btn-info"
+                style="cursor: pointer"
+              >
+                <i class="fas fa-upload"></i> Upload Image
+              </label>
+              <input
+                type="file"
+                id="uploadInput"
+                accept="image/*"
+                style="display: none"
+              />
+              <!-- KẾT THÚC PHẦN THÊM -->
               <button
                 id="stopCameraBtn"
                 class="btn btn-danger"
@@ -522,7 +538,6 @@
 
             <!-- THÊM SPINNER VÀO ĐÂY -->
             <div class="text-center mt-3">
-              <!-- Bọc trong div để căn giữa -->
               <div
                 id="spinner"
                 class="spinner-border text-primary"
@@ -530,6 +545,77 @@
                 style="display: none"
               >
                 <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+
+            <!-- KHU VỰC HIỂN THỊ KẾT QUẢ MỚI (NEW RESULT AREA) -->
+            <div
+              id="resultContainer"
+              class="mt-4"
+              style="
+                display: none;
+                border-top: 1px solid #dee2e6;
+                padding-top: 20px;
+              "
+            >
+              <div class="row">
+                <!-- Cột hiển thị ảnh đã chụp -->
+                <div class="col-md-6 text-center">
+                  <h6><i class="fas fa-image"></i> Captured Image</h6>
+                  <img
+                    id="capturedImageDisplay"
+                    class="img-fluid border rounded shadow-sm"
+                    style="max-height: 300px"
+                    alt="Captured Code"
+                  />
+                </div>
+
+                <!-- Cột hiển thị kết quả chi tiết -->
+                <div class="col-md-6">
+                  <h6><i class="fas fa-tasks"></i> Analysis Result</h6>
+
+                  <!-- Trạng thái PASS/FAIL -->
+                  <div
+                    id="statusBadge"
+                    class="alert text-center font-weight-bold"
+                    role="alert"
+                  >
+                    Processing...
+                  </div>
+
+                  <!-- Form so sánh -->
+                  <div class="form-group">
+                    <label class="small text-muted"
+                      >Expected Code (Standard):</label
+                    >
+                    <input
+                      type="text"
+                      id="expectedTextInput"
+                      class="form-control"
+                      readonly
+                      style="background-color: #e9ecef; font-family: monospace"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="small text-muted"
+                      >AI Detected Code (Actual):</label
+                    >
+                    <input
+                      type="text"
+                      id="detectedTextInput"
+                      class="form-control"
+                      readonly
+                      style="font-family: monospace; font-weight: bold"
+                    />
+                  </div>
+
+                  <div
+                    id="errorMessage"
+                    class="text-danger small mt-2"
+                    style="display: none"
+                  ></div>
+                </div>
               </div>
             </div>
 
@@ -553,7 +639,6 @@
     </div>
 
     <!-- Load scripts at the end for better performance -->
-    <!-- Thêm Tesseract.js CDN -->
     <script
       src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"
       defer
@@ -562,16 +647,16 @@
       src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
       defer
     ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+    <!-- XÓA CÁC DÒNG BÊN DƯỚI -->
+    <!-- <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jimp/0.16.1/jimp-browser.min.js"
       defer
     ></script>
     <script
-      src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+      src="https://cdn.jsdelivr.net/npm/buffer@6.0.3/index.min.js"
       defer
-    ></script>
-    <script src="script.js"></script>
-    <!-- Thêm vào file index.html -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jimp/0.16.1/jimp.min.js"></script>
+    ></script> -->
+    <!-- KẾT THÚC PHẦN XÓA -->
+    <script src="script.js" defer></script>
   </body>
 </html>

@@ -40,20 +40,20 @@ export class VisionService {
       const scenarios: Scenario[] = [
         {
           id: "dot",
-          // Thêm kiểu dữ liệu : sharp.Sharp cho tham số img
+          // GIẢM ĐỘ MẠNH: Bỏ threshold, chỉ tăng tương phản và giảm nhiễu nhẹ.
+          // linear(a, b) -> a là độ dốc (tương phản), b là độ lệch (độ sáng).
           process: (img: sharp.Sharp) =>
-            img.greyscale().median(2).resize(1200).threshold(140),
+            img.greyscale().linear(1.5, -20).sharpen({ sigma: 0.5 }),
         },
         {
           id: "laser",
-          process: (img: sharp.Sharp) =>
-            // Thay modulate({ contrast: ... }) bằng lienar(3) để tăng tương phản gấp 3 lần
-            img.greyscale().linear(3).threshold(150),
+          // GIẢM ĐỘ MẠNH: Bỏ threshold, chỉ tăng tương phản mạnh hơn.
+          process: (img: sharp.Sharp) => img.greyscale().linear(2.5, -50),
         },
         {
           id: "solid",
-          process: (img: sharp.Sharp) =>
-            img.greyscale().sharpen().threshold(120),
+          // GIẢM ĐỘ MẠNH: Bỏ threshold, chỉ làm sắc nét và tăng tương phản.
+          process: (img: sharp.Sharp) => img.greyscale().linear(1.5).sharpen(),
         },
       ];
 

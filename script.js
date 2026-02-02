@@ -642,37 +642,46 @@ document.addEventListener("DOMContentLoaded", function () {
   const groupSelect = document.getElementById("groupSelect");
   const productSelect = document.getElementById("productSelect");
   const startCameraBtn = document.getElementById("startCameraBtn");
+  const uploadBtn = document.getElementById("uploadBtn"); // Lấy nút upload
 
-  // Hàm kiểm tra và bật/tắt nút "Start Camera"
-  function toggleCameraButton() {
-    if (areaSelect.value && groupSelect.value && productSelect.value) {
+  // Hàm kiểm tra và bật/tắt các nút hành động (Camera và Upload)
+  function toggleActionButtons() {
+    const allSelected =
+      areaSelect.value && groupSelect.value && productSelect.value;
+    if (allSelected) {
       startCameraBtn.disabled = false;
+      uploadBtn.classList.remove("btn-disabled"); // Kích hoạt nút upload
     } else {
       startCameraBtn.disabled = true;
+      uploadBtn.classList.add("btn-disabled"); // Vô hiệu hóa nút upload
     }
   }
+
+  // Khởi tạo trạng thái ban đầu
+  toggleActionButtons();
 
   if (areaSelect) {
     areaSelect.addEventListener("change", (event) => {
       populateGroupSelector(event.target.value);
       populateProductSelector(); // Reset product selector
-      toggleCameraButton();
+      toggleActionButtons(); // Cập nhật trạng thái nút
     });
   }
 
   if (groupSelect) {
     groupSelect.addEventListener("change", (event) => {
       populateProductSelector(areaSelect.value, event.target.value);
-      toggleCameraButton();
+      toggleActionButtons(); // Cập nhật trạng thái nút
     });
   }
   if (productSelect) {
-    productSelect.addEventListener("change", toggleCameraButton);
+    productSelect.addEventListener("change", toggleActionButtons);
   }
 
-  // Xử lý sự kiện cho tính năng Validate bằng Camera
+  // Xử lý sự kiện cho tính năng Validate bằng Camera và Upload
   const stopCameraBtn = document.getElementById("stopCameraBtn");
   const captureBtn = document.getElementById("captureBtn");
+  const uploadInput = document.getElementById("uploadInput"); // Lấy input ẩn
 
   if (startCameraBtn) {
     startCameraBtn.addEventListener("click", startCamera);
@@ -683,7 +692,165 @@ document.addEventListener("DOMContentLoaded", function () {
   if (captureBtn) {
     captureBtn.addEventListener("click", captureAndValidate);
   }
+  // Gán sự kiện cho input file
+  if (uploadInput) {
+    uploadInput.addEventListener("change", handleImageUpload);
+  }
 });
+
+// =================================================================================
+// KHU VỰC XỬ LÝ UPLOAD VÀ CHỤP ẢNH
+// =================================================================================
+
+/**
+ * HÀM RIÊNG CHO NÚT UPLOAD: Xử lý khi người dùng chọn file ảnh.
+ * @param {Event} event - Sự kiện 'change' từ input file.
+ */
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const imageBase64 = e.target.result;
+    // Sau khi có ảnh, gọi hàm xử lý chung
+    processImageForValidation(imageBase64);
+  };
+  reader.readAsDataURL(file);
+
+  // Reset input để có thể upload lại cùng một file
+  event.target.value = null;
+}
+
+/**
+ * HÀM RIÊNG CHO NÚT CHỤP ẢNH: Chụp ảnh từ video, cắt và xử lý.
+ */
+async function captureAndValidate() {
+  const video = document.getElementById("videoElement");
+  const viewfinder = document.getElementById("viewfinder");
+
+  if (!video.srcObject || video.paused || video.ended) {
+    console.error("Camera is not active.");
+    alert("Camera is not active. Please start the camera first.");
+    return;
+  }
+
+  // --- Logic chụp và cắt ảnh từ video ---
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  const videoWidth = video.videoWidth;
+  const videoHeight = video.videoHeight;
+  const box = viewfinder.getBoundingClientRect();
+  const videoBox = video.getBoundingClientRect();
+
+  const scaleX = videoWidth / videoBox.width;
+  const scaleY = videoHeight / videoBox.height;
+
+  const cropX = (box.left - videoBox.left) * scaleX;
+  const cropY = (box.top - videoBox.top) * scaleY;
+  const cropWidth = box.width * scaleX;
+  const cropHeight = box.height * scaleY;
+
+  canvas.width = cropWidth;
+  canvas.height = cropHeight;
+
+  context.drawImage(
+    video,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    cropWidth,
+    cropHeight,
+  );
+
+  const imageBase64 = canvas.toDataURL("image/png");
+
+  // Sau khi có ảnh, gọi hàm xử lý chung
+  await processImageForValidation(imageBase64);
+}
+
+/**
+ * HÀM XỬ LÝ CHUNG: Nhận ảnh, gọi API và hiển thị kết quả.
+ * @param {string} imageBase64 - Dữ liệu ảnh dưới dạng base64.
+ */
+async function processImageForValidation(imageBase64) {
+  const spinner = document.getElementById("spinner");
+  const resultContainer = document.getElementById("resultContainer");
+  const capturedImageDisplay = document.getElementById("capturedImageDisplay");
+  const statusBadge = document.getElementById("statusBadge");
+  const detectedTextInput = document.getElementById("detectedTextInput");
+  const expectedTextInput = document.getElementById("expectedTextInput");
+  const errorMessage = document.getElementById("errorMessage");
+
+  // Reset và hiển thị giao diện xử lý
+  spinner.style.display = "block";
+  resultContainer.style.display = "block";
+  errorMessage.style.display = "none";
+  detectedTextInput.value = "";
+  capturedImageDisplay.src = imageBase64;
+
+  statusBadge.className = "alert alert-warning text-center font-weight-bold";
+  statusBadge.innerHTML =
+    '<i class="fas fa-cog fa-spin"></i> Analyzing with AI...';
+
+  // --- LẤY CHUỖI KÝ TỰ CHUẨN VÀ KỊCH BẢN ---
+  const productSelect = document.getElementById("productSelect");
+  const codeTypeSelect = document.getElementById("codeTypeSelect");
+  const product = products.find((p) => p.batchId === productSelect.value);
+  const selectedCodeType = codeTypeSelect.value;
+
+  if (!product) {
+    validateOcrResult({ success: false, error: "Product not selected." });
+    spinner.style.display = "none";
+    return;
+  }
+
+  const lineName = product.productionLine.toUpperCase();
+  let scenario = "solid";
+  if (lineName.includes("SANKO")) {
+    scenario = "dot";
+  }
+
+  const expectedElementId =
+    selectedCodeType === "stick"
+      ? "expiryId"
+      : selectedCodeType === "bag"
+        ? "expiryBagId"
+        : "expiryCartonId";
+
+  const expectedElement = document.getElementById(product[expectedElementId]);
+  if (!expectedElement) {
+    const errorMsg = `Configuration Error: Element ID '${product[expectedElementId]}' not found.`;
+    validateOcrResult({ success: false, error: errorMsg });
+    spinner.style.display = "none";
+    return;
+  }
+
+  const expectedTextHTML = expectedElement.innerHTML;
+  const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ").trim();
+  expectedTextInput.value = expectedText;
+
+  // --- GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
+  try {
+    const result = await callValidationApi(imageBase64, expectedText, scenario);
+    validateOcrResult(result);
+  } catch (error) {
+    validateOcrResult({
+      success: false,
+      error: error.message,
+      foundText: "API Call Failed",
+      expectedText: expectedText,
+    });
+  } finally {
+    spinner.style.display = "none";
+  }
+}
 
 /**
  * Xử lý sự kiện khi người dùng nhấn nút "Calculate" từ Batch Code.
@@ -946,57 +1113,43 @@ async function callValidationApi(base64Image, expectedText, scenario) {
 }
 
 /**
- * Chụp ảnh, gửi dữ liệu đến backend để xử lý và nhận kết quả cuối cùng.
+ * Chụp ảnh từ camera và bắt đầu quá trình xác thực.
  */
 async function captureAndValidate() {
-  const video = document.getElementById("videoElement");
-  const viewfinder = document.getElementById("viewfinder");
-  const validationResult = document.getElementById("validationResult");
-  const spinner = document.getElementById("spinner"); // Biểu tượng loading
-
-  if (!video.srcObject) {
-    console.error("Camera is not running.");
-    return;
-  }
-
-  spinner.style.display = "block";
-  validationResult.style.display = "none";
-
-  // --- BƯỚC 1: CHỤP VÀ CẮT ẢNH ---
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-
-  const videoWidth = video.videoWidth;
-  const videoHeight = video.videoHeight;
-  const box = viewfinder.getBoundingClientRect();
-  const videoBox = video.getBoundingClientRect();
-
-  const scaleX = videoWidth / videoBox.width;
-  const scaleY = videoHeight / videoBox.height;
-
-  const cropX = (box.left - videoBox.left) * scaleX;
-  const cropY = (box.top - videoBox.top) * scaleY;
-  const cropWidth = box.width * scaleX;
-  const cropHeight = box.height * scaleY;
-
-  canvas.width = cropWidth;
-  canvas.height = cropHeight;
-
-  context.drawImage(
-    video,
-    cropX,
-    cropY,
-    cropWidth,
-    cropHeight,
-    0,
-    0,
-    cropWidth,
-    cropHeight,
-  );
-
+  // ... (Nội dung hàm này giữ nguyên)
+  // ...
   const imageBase64 = canvas.toDataURL("image/png");
 
-  // --- BƯỚC 2: LẤY CHUỖI KÝ TỰ CHUẨN ---
+  // Gọi hàm xử lý chung
+  await processImageForValidation(imageBase64);
+}
+
+/**
+ * Hàm xử lý chính: Nhận ảnh base64, lấy thông tin, gọi API và hiển thị kết quả.
+ * Được sử dụng bởi cả luồng chụp ảnh và luồng upload.
+ * @param {string} imageBase64 - Dữ liệu ảnh dưới dạng base64.
+ */
+async function processImageForValidation(imageBase64) {
+  const spinner = document.getElementById("spinner");
+  const resultContainer = document.getElementById("resultContainer");
+  const capturedImageDisplay = document.getElementById("capturedImageDisplay");
+  const statusBadge = document.getElementById("statusBadge");
+  const detectedTextInput = document.getElementById("detectedTextInput");
+  const expectedTextInput = document.getElementById("expectedTextInput");
+  const errorMessage = document.getElementById("errorMessage");
+
+  // Reset và hiển thị giao diện xử lý
+  spinner.style.display = "block";
+  resultContainer.style.display = "block"; // Hiển thị container kết quả ngay
+  errorMessage.style.display = "none";
+  detectedTextInput.value = "";
+  capturedImageDisplay.src = imageBase64; // Hiển thị ảnh được cung cấp
+
+  statusBadge.className = "alert alert-warning text-center font-weight-bold";
+  statusBadge.innerHTML =
+    '<i class="fas fa-cog fa-spin"></i> Analyzing with AI...';
+
+  // --- LẤY CHUỖI KÝ TỰ CHUẨN VÀ KỊCH BẢN ---
   const productSelect = document.getElementById("productSelect");
   const codeTypeSelect = document.getElementById("codeTypeSelect");
   const product = products.find((p) => p.batchId === productSelect.value);
@@ -1008,9 +1161,6 @@ async function captureAndValidate() {
     return;
   }
 
-  // --- BƯỚC MỚI: XÁC ĐỊNH KỊCH BẢN XỬ LÝ ẢNH ---
-  // Tự động xác định kịch bản dựa trên tên máy
-  // Ví dụ: SANKO thường dùng in phun (nét chấm), còn lại là in laser/solid
   const lineName = product.productionLine.toUpperCase();
   let scenario = "solid"; // Mặc định là solid
   if (lineName.includes("SANKO")) {
@@ -1027,19 +1177,24 @@ async function captureAndValidate() {
       : selectedCodeType === "bag"
         ? "expiryBagId"
         : "expiryCartonId";
-  const expectedTextHTML = document.getElementById(
-    product[expectedElementId],
-  ).innerHTML;
-  // Chuyển <br> thành khoảng trắng để có chuỗi hoàn chỉnh
-  const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ");
 
-  // --- BƯỚC 3: GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
+  const expectedElement = document.getElementById(product[expectedElementId]);
+  if (!expectedElement) {
+    const errorMsg = `Configuration Error: Element ID '${product[expectedElementId]}' not found.`;
+    validateOcrResult({ success: false, error: errorMsg });
+    spinner.style.display = "none";
+    return;
+  }
+
+  const expectedTextHTML = expectedElement.innerHTML;
+  const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ").trim();
+  expectedTextInput.value = expectedText;
+
+  // --- GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
   try {
-    // Truyền thêm 'scenario' vào hàm gọi API
     const result = await callValidationApi(imageBase64, expectedText, scenario);
-    validateOcrResult(result);
+    validateOcrResult(result); // Dùng hàm hiển thị kết quả mới
   } catch (error) {
-    // Lỗi mạng hoặc lỗi không mong muốn khác
     validateOcrResult({
       success: false,
       error: error.message,
@@ -1052,28 +1207,37 @@ async function captureAndValidate() {
 }
 
 /**
- * Hiển thị kết quả PASSED/FAILED trả về từ backend.
+ * Hiển thị kết quả PASSED/FAILED trả về từ backend vào khu vực kết quả mới.
  * @param {object} result - Đối tượng kết quả từ backend.
- * @param {boolean} result.success - Trạng thái thành công/thất bại.
- * @param {string} [result.foundText] - Văn bản OCR tìm được.
- * @param {string} [result.expectedText] - Văn bản mong đợi.
- * @param {string} [result.error] - Thông báo lỗi (nếu có).
  */
 function validateOcrResult(result) {
-  const validationResult = document.getElementById("validationResult");
+  const statusBadge = document.getElementById("statusBadge");
+  const detectedTextInput = document.getElementById("detectedTextInput");
+  const errorMessage = document.getElementById("errorMessage");
+
+  // Điền text mà AI đọc được vào ô input
+  detectedTextInput.value = result.foundText || "";
+  errorMessage.style.display = "none"; // Ẩn lỗi cũ
 
   if (result.success) {
-    validationResult.innerHTML = `<strong><i class="fas fa-check-circle"></i> PASSED</strong><br>Expected: ${result.expectedText}<br>Found: ${result.foundText}`;
-    validationResult.className = "alert alert-success mt-3";
+    statusBadge.className = "alert alert-success text-center font-weight-bold";
+    statusBadge.innerHTML =
+      '<h1><i class="fas fa-check-circle"></i> PASSED</h1>';
+    detectedTextInput.classList.add("is-valid");
+    detectedTextInput.classList.remove("is-invalid");
   } else {
-    let errorMessage = `<strong><i class="fas fa-times-circle"></i> FAILED</strong><br>Expected: ${result.expectedText || "N/A"}<br>Found: ${result.foundText || "Nothing"}`;
+    statusBadge.className = "alert alert-danger text-center font-weight-bold";
+    statusBadge.innerHTML =
+      '<h1><i class="fas fa-times-circle"></i> FAILED</h1>';
+
+    detectedTextInput.classList.add("is-invalid");
+    detectedTextInput.classList.remove("is-valid");
+
     if (result.error) {
-      errorMessage += `<br><small>Reason: ${result.error}</small>`;
+      errorMessage.textContent = `Reason: ${result.error}`;
+      errorMessage.style.display = "block";
     }
-    validationResult.innerHTML = errorMessage;
-    validationResult.className = "alert alert-danger mt-3";
   }
-  validationResult.style.display = "block";
 }
 
 /**
