@@ -6,6 +6,8 @@ node_modules/
 
 # Thư mục chứa code sau khi biên dịch
 dist/
+# Thư mục chứa file tạm của
+ngrok/
 
 # Các file log lỗi
 npm-debug.log*
