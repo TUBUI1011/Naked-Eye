@@ -457,27 +457,44 @@
 
       <!-- ================== KHU VỰC VALIDATE BẰNG CAMERA ================== -->
       <div class="validator-container mt-5">
-        <h4 class="text-center mb-4">Code Validator via Camera</h4>
+        <h2 class="text-center mb-4">Code Validator via Camera</h2>
         <div class="card">
           <div class="card-body">
-            <!-- Div riêng cho các lựa chọn -->
-            <div id="validator-options">
-              <div class="row mb-3">
-                <div class="col-md-3">
+            <div class="row">
+              <!-- Cột 1: Area -->
+              <div class="col-md-3">
+                <div class="form-group">
                   <label for="areaSelect">1. Select Area:</label>
                   <select class="form-control" id="areaSelect"></select>
                 </div>
-                <div class="col-md-3">
+              </div>
+              <!-- Cột 2: Group -->
+              <div class="col-md-3">
+                <div class="form-group">
                   <label for="groupSelect">2. Select Group:</label>
-                  <select class="form-control" id="groupSelect"></select>
+                  <select
+                    class="form-control"
+                    id="groupSelect"
+                    disabled
+                  ></select>
                 </div>
-                <div class="col-md-3">
+              </div>
+              <!-- Cột 3: Line -->
+              <div class="col-md-3">
+                <div class="form-group">
                   <label for="productSelect">3. Select Line:</label>
-                  <select class="form-control" id="productSelect"></select>
+                  <select
+                    class="form-control"
+                    id="productSelect"
+                    disabled
+                  ></select>
                 </div>
-                <div class="col-md-3">
+              </div>
+              <!-- Cột 4: Code Type -->
+              <div class="col-md-3">
+                <div class="form-group">
                   <label for="codeTypeSelect">4. Select Code Type:</label>
-                  <select class="form-control">
+                  <select class="form-control" id="codeTypeSelect">
                     <option value="stick">Stick</option>
                     <option value="bag">Bag</option>
                     <option value="carton">Carton</option>
@@ -515,7 +532,7 @@
                 <i class="fas fa-stop-circle"></i> Stop Camera
               </button>
               <div
-                id="cameraFeed"
+                id="cameraContainer"
                 class="mt-3"
                 style="display: none; position: relative"
               >
