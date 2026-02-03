@@ -973,7 +973,7 @@ async function callValidationApi(imageBase64, expectedText, scenario) {
       },
       body: JSON.stringify({
         image: imageBase64, // Ảnh dưới dạng base64
-        expected: expectedText, // Chuỗi ký tự mong đợi
+        expectedText: expectedText, // SỬA "expected" THÀNH "expectedText"
         scenario: scenario, // Kịch bản OCR ('dot', 'solid', 'laser')
       }),
     });
