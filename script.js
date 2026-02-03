@@ -338,6 +338,16 @@ const products = [
 // =================================================================================
 
 /**
+ * Chuẩn hóa một chuỗi bằng cách loại bỏ tất cả các khoảng trắng và chuyển thành chữ hoa.
+ * @param {string} str - Chuỗi đầu vào.
+ * @returns {string} - Chuỗi đã được chuẩn hóa.
+ */
+function normalizeString(str) {
+  if (!str) return "";
+  return str.replace(/\s+/g, "").toUpperCase();
+}
+
+/**
  * Lấy ngày sản xuất "kinh doanh" hiện tại.
  * Một ngày sản xuất kéo dài từ 5:40 sáng hôm nay đến 5:39 sáng hôm sau.
  * @returns {Date} - Đối tượng Date của ngày sản xuất hiện tại.
@@ -1045,7 +1055,7 @@ async function callValidationApi(imageBase64, expectedText, scenario) {
  * Hiển thị kết quả PASSED/FAILED trả về từ backend vào khu vực kết quả mới.
  * @param {object} result - Đối tượng kết quả từ backend.
  */
-function validateOcrResult(result) {
+/*function validateOcrResult(result) {
   const statusBadge = document.getElementById("statusBadge");
   const detectedTextInput = document.getElementById("detectedTextInput");
   const errorMessage = document.getElementById("errorMessage");
@@ -1053,6 +1063,8 @@ function validateOcrResult(result) {
   // Điền text mà AI đọc được vào ô input
   detectedTextInput.value = result.foundText || "";
   errorMessage.style.display = "none"; // Ẩn lỗi cũ
+
+
 
   if (result.success) {
     statusBadge.className = "alert alert-success text-center font-weight-bold";
@@ -1072,6 +1084,45 @@ function validateOcrResult(result) {
       errorMessage.textContent = `Reason: ${result.error}`;
       errorMessage.style.display = "block";
     }
+  }
+}*/
+function validateOcrResult(result) {
+  const statusBadge = document.getElementById("statusBadge");
+  const detectedTextInput = document.getElementById("detectedTextInput");
+  const errorMessage = document.getElementById("errorMessage");
+  const expectedTextInput = document.getElementById("expectedTextInput"); // Lấy thêm ô input expected
+
+  // Điền text mà AI đọc được vào ô input
+  detectedTextInput.value = result.foundText || "";
+  errorMessage.style.display = "none"; // Ẩn lỗi cũ
+
+  // --- THÊM BƯỚC CHUẨN HÓA CHUỖI ---
+  const normalizedExpected = normalizeString(expectedTextInput.value);
+  const normalizedFound = normalizeString(result.foundText);
+  const isMatch = normalizedExpected === normalizedFound;
+  // --- KẾT THÚC BƯỚC CHUẨN HÓA ---
+
+  // Sử dụng kết quả so sánh 'isMatch' thay vì 'result.success'
+  if (isMatch) {
+    statusBadge.className = "alert alert-success text-center font-weight-bold";
+    statusBadge.innerHTML =
+      '<h1><i class="fas fa-check-circle"></i> PASSED</h1>';
+    detectedTextInput.classList.add("is-valid");
+    detectedTextInput.classList.remove("is-invalid");
+  } else {
+    statusBadge.className = "alert alert-danger text-center font-weight-bold";
+    statusBadge.innerHTML =
+      '<h1><i class="fas fa-times-circle"></i> FAILED</h1>';
+
+    detectedTextInput.classList.add("is-invalid");
+    detectedTextInput.classList.remove("is-valid");
+
+    // Hiển thị lỗi từ API nếu có, nếu không thì báo lỗi không khớp
+    const reason = result.error
+      ? result.error
+      : "Detected code does not match expected code.";
+    errorMessage.textContent = `Reason: ${reason}`;
+    errorMessage.style.display = "block";
   }
 }
 
