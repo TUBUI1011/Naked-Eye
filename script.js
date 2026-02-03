@@ -836,13 +836,36 @@ function handleImageUpload(event) {
   const reader = new FileReader();
   reader.onload = function (e) {
     const imageBase64 = e.target.result;
-    // Sau khi có ảnh, gọi hàm xử lý chung
-    processImageForValidation(imageBase64).finally(() => {
-      // Kích hoạt lại nút camera sau khi xử lý xong
-      if (startCameraBtn) {
-        startCameraBtn.disabled = false;
-      }
-    });
+
+    // --- BƯỚC 1: CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC ---
+    // Di chuyển các lệnh cập nhật UI ra khỏi processImageForValidation và đặt vào đây.
+    const resultContainer = document.getElementById("resultContainer");
+    const capturedImageDisplay = document.getElementById(
+      "capturedImageDisplay",
+    );
+    const statusBadge = document.getElementById("statusBadge");
+    const spinner = document.getElementById("spinner");
+
+    resultContainer.style.display = "block";
+    capturedImageDisplay.src = imageBase64;
+    statusBadge.className = "alert alert-warning text-center font-weight-bold";
+    statusBadge.innerHTML =
+      '<i class="fas fa-cog fa-spin"></i> Analyzing with AI...';
+    spinner.style.display = "block";
+    document.getElementById("expectedTextInput").value = "";
+    document.getElementById("detectedTextInput").value = "";
+    document.getElementById("errorMessage").style.display = "none";
+
+    // --- BƯỚC 2: GỌI HÀM XỬ LÝ LOGIC SAU MỘT KHOẢNG TRỄ NHỎ ---
+    // Điều này cho phép trình duyệt di động có thời gian để "vẽ" lại giao diện ở Bước 1.
+    setTimeout(() => {
+      processImageForValidation(imageBase64).finally(() => {
+        // Kích hoạt lại nút camera sau khi xử lý xong
+        if (startCameraBtn) {
+          startCameraBtn.disabled = false;
+        }
+      });
+    }, 50); // 50ms là một khoảng trễ an toàn và không thể nhận thấy.
   };
   reader.readAsDataURL(file);
 
@@ -906,6 +929,7 @@ async function captureAndValidate() {
  * @param {string} imageBase64 - Dữ liệu ảnh dưới dạng base64.
  */
 async function processImageForValidation(imageBase64) {
+  // Lấy các phần tử UI một lần nữa vì hàm này giờ được gọi từ cả hai luồng
   const spinner = document.getElementById("spinner");
   const resultContainer = document.getElementById("resultContainer");
   const capturedImageDisplay = document.getElementById("capturedImageDisplay");
@@ -914,7 +938,7 @@ async function processImageForValidation(imageBase64) {
   const expectedTextInput = document.getElementById("expectedTextInput");
   const errorMessage = document.getElementById("errorMessage");
 
-  // 1. Cập nhật giao diện ngay lập tức để người dùng thấy phản hồi
+  // Cập nhật giao diện ban đầu (quan trọng cho luồng chụp ảnh)
   resultContainer.style.display = "block";
   capturedImageDisplay.src = imageBase64;
   statusBadge.className = "alert alert-warning text-center font-weight-bold";
@@ -925,65 +949,57 @@ async function processImageForValidation(imageBase64) {
   detectedTextInput.value = "";
   expectedTextInput.value = "";
 
-  // 2. Trì hoãn phần logic nặng để trình duyệt có thời gian "vẽ" lại UI
-  setTimeout(async () => {
-    try {
-      // --- LẤY CHUỖI KÝ TỰ CHUẨN VÀ KỊCH BẢN ---
-      const productSelect = document.getElementById("productSelect");
-      const codeTypeSelect = document.getElementById("codeTypeSelect");
-      const product = products.find((p) => p.batchId === productSelect.value);
-      const selectedCodeType = codeTypeSelect.value;
+  // Phần logic xử lý không thay đổi
+  try {
+    // --- LẤY CHUỖI KÝ TỰ CHUẨN VÀ KỊCH BẢN ---
+    const productSelect = document.getElementById("productSelect");
+    const codeTypeSelect = document.getElementById("codeTypeSelect");
+    const product = products.find((p) => p.batchId === productSelect.value);
+    const selectedCodeType = codeTypeSelect.value;
 
-      if (!product) {
-        validateOcrResult({ success: false, error: "Product not selected." });
-        return; // Thoát sớm nếu không có sản phẩm
-      }
-
-      const lineName = product.productionLine.toUpperCase();
-      let scenario = "solid"; // Mặc định là solid
-      if (lineName.includes("SANKO")) {
-        scenario = "dot";
-      }
-
-      const expectedElementId =
-        selectedCodeType === "stick"
-          ? "expiryId"
-          : selectedCodeType === "bag"
-            ? "expiryBagId"
-            : "expiryCartonId";
-
-      const expectedElement = document.getElementById(
-        product[expectedElementId],
-      );
-      if (!expectedElement) {
-        const errorMsg = `Configuration Error: Element ID '${product[expectedElementId]}' not found.`;
-        validateOcrResult({ success: false, error: errorMsg });
-        return; // Thoát sớm nếu cấu hình lỗi
-      }
-
-      const expectedTextHTML = expectedElement.innerHTML;
-      const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ").trim();
-      expectedTextInput.value = expectedText;
-
-      // --- GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
-      const result = await callValidationApi(
-        imageBase64,
-        expectedText,
-        scenario,
-      );
-      validateOcrResult(result);
-    } catch (error) {
-      validateOcrResult({
-        success: false,
-        error: error.message,
-        foundText: "API Call Failed",
-        expectedText: expectedTextInput.value, // Lấy giá trị đã được điền
-      });
-    } finally {
-      // Luôn ẩn spinner sau khi hoàn tất
-      spinner.style.display = "none";
+    if (!product) {
+      validateOcrResult({ success: false, error: "Product not selected." });
+      return;
     }
-  }, 0); // Thời gian trễ 0ms để UI kịp cập nhật
+
+    const lineName = product.productionLine.toUpperCase();
+    let scenario = "solid";
+    if (lineName.includes("SANKO")) {
+      scenario = "dot";
+    }
+
+    const expectedElementId =
+      selectedCodeType === "stick"
+        ? "expiryId"
+        : selectedCodeType === "bag"
+          ? "expiryBagId"
+          : "expiryCartonId";
+
+    const expectedElement = document.getElementById(product[expectedElementId]);
+    if (!expectedElement) {
+      const errorMsg = `Configuration Error: Element ID '${product[expectedElementId]}' not found.`;
+      validateOcrResult({ success: false, error: errorMsg });
+      return;
+    }
+
+    const expectedTextHTML = expectedElement.innerHTML;
+    const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ").trim();
+    expectedTextInput.value = expectedText;
+
+    // --- GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
+    const result = await callValidationApi(imageBase64, expectedText, scenario);
+    validateOcrResult(result);
+  } catch (error) {
+    validateOcrResult({
+      success: false,
+      error: error.message,
+      foundText: "API Call Failed",
+      expectedText: expectedTextInput.value, // Lấy giá trị đã được điền
+    });
+  } finally {
+    // Luôn ẩn spinner sau khi hoàn tất
+    spinner.style.display = "none";
+  }
 }
 
 /**
