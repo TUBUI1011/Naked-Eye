@@ -156,306 +156,222 @@
 
       <!-- Bảng cho Packing Line -->
       <div class="table-container mt-5">
-        <h4 class="mb-3">
-          <i class="fas fa-box-open"></i> Packing Line Information
-        </h4>
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Group</th>
-                <th>Production Line</th>
-                <th>Shelf Life</th>
-                <th>Batch Code</th>
-                <th>Expiration Date (Bag)</th>
-                <th>Expiration Date (Carton)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- SANKO 14 -->
-              <tr>
-                <td>2IN1</td>
-                <td>SANKO 14 (12M)</td>
-                <td>12 tháng</td>
-                <td id="pack-batchCode"></td>
-                <td id="pack-expirationDateBag"></td>
-                <td id="pack-expirationDateCarton"></td>
-              </tr>
-              <!-- SANKO 12 -->
-              <tr>
-                <td>2IN1</td>
-                <td>SANKO 12</td>
-                <td>9 tháng</td>
-                <td id="pack-batchCode2"></td>
-                <td id="pack-expirationDateBag2"></td>
-                <td id="pack-expirationDateCarton2"></td>
-              </tr>
-              <!-- SANKO 711 -->
-              <tr>
-                <td>2IN1</td>
-                <td>SANKO 711</td>
-                <td>9 tháng</td>
-                <td id="pack-batchCode711"></td>
-                <td id="pack-expirationDateBag711"></td>
-                <td id="pack-expirationDateCarton711"></td>
-              </tr>
-              <!-- SANKO 34 -->
-              <tr>
-                <td>2IN1</td>
-                <td>TOPACK 34</td>
-                <td>9 tháng</td>
-                <td id="pack-batchCode34"></td>
-                <td id="pack-expirationDateBag34"></td>
-                <td id="pack-expirationDateCarton34"></td>
-              </tr>
-              <!-- 3IN1 SANKO 48 -->
-              <tr>
-                <td>3IN1</td>
-                <td>SANKO 48</td>
-                <td>15 tháng</td>
-                <td id="pack-batchCode48"></td>
-                <td id="pack-expirationDateBag48"></td>
-                <td id="pack-expirationDateCarton48"></td>
-              </tr>
-              <!-- 3IN1 SANKO 26 -->
-              <tr>
-                <td>3IN1</td>
-                <td>SANKO 26</td>
-                <td>15 tháng</td>
-                <td id="pack-batchCode26"></td>
-                <td id="pack-expirationDateBag26"></td>
-                <td id="pack-expirationDateCarton26"></td>
-              </tr>
-              <!-- 3IN1 MESPACK 12 -->
-              <tr>
-                <td>3IN1</td>
-                <td>MESPACK 12</td>
-                <td>15 tháng</td>
-                <td id="pack-batchCodeMes12"></td>
-                <td id="pack-expirationDateBagMes12"></td>
-                <td id="pack-expirationDateCartonMes12"></td>
-              </tr>
-              <!-- 3IN1 MESPACK 3 -->
-              <tr>
-                <td>3IN1</td>
-                <td>MESPACK 3</td>
-                <td>15 tháng</td>
-                <td id="pack-batchCodeMes3"></td>
-                <td id="pack-expirationDateBagMes3"></td>
-                <td id="pack-expirationDateCartonMes3"></td>
-              </tr>
-              <!-- MESPACK GOLD (24M) -->
-              <tr>
-                <td>PSC</td>
-                <td>MESPACK (24M)</td>
-                <td>24 tháng</td>
-                <td id="pack-batchCodeGold24"></td>
-                <td id="pack-expirationDateBagGold24"></td>
-                <td id="pack-expirationDateCartonGold24"></td>
-              </tr>
-              <!-- MESPACK (18M) -->
-              <tr>
-                <td>PSC</td>
-                <td>MESPACK (18M)</td>
-                <td>18 tháng</td>
-                <td id="pack-batchCodeMes18"></td>
-                <td id="pack-expirationDateBagMes18"></td>
-                <td id="pack-expirationDateCartonMes18"></td>
-              </tr>
-              <!-- PSCUNI (18M) -->
-              <tr>
-                <td>PSC</td>
-                <td>PSCUNI (18M)</td>
-                <td>18 tháng</td>
-                <td id="pack-batchCodeUni18"></td>
-                <td id="pack-expirationDateBagUni18"></td>
-                <td id="pack-expirationDateCartonUni18"></td>
-              </tr>
-              <!-- PSCTAWO (18M) -->
-              <tr>
-                <td>PSC</td>
-                <td>PSCTAWO (18M)</td>
-                <td>18 tháng</td>
-                <td id="pack-batchCodeTawo18"></td>
-                <td id="pack-expirationDateBagTawo18"></td>
-                <td id="pack-expirationDateCartonTawo18"></td>
-              </tr>
-              <!-- PSCWOLF (18M) -->
-              <tr>
-                <td>PSC</td>
-                <td>PSCWOLF (18M)</td>
-                <td>18 tháng</td>
-                <td id="pack-batchCodeWolf18"></td>
-                <td id="pack-expirationDateBagWolf18"></td>
-                <td id="pack-expirationDateCartonWolf18"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <h3 class="text-center">Packing Line Information</h3>
+        <table class="table table-bordered table-striped">
+          <thead class="thead-dark">
+            <tr>
+              <th>Production Line</th>
+              <th>Batch Code</th>
+              <th>Expiration Date (Bag)</th>
+              <th>Expiration Date (Carton)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 2IN1 -->
+            <tr>
+              <td>SANKO 14 (12m)</td>
+              <td><span id="pack-batchCode"></span></td>
+              <td><span id="pack-expirationDateBag"></span></td>
+              <td><span id="pack-expirationDateCarton"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 12 (9m)</td>
+              <td><span id="pack-batchCode2"></span></td>
+              <td><span id="pack-expirationDateBag2"></span></td>
+              <td><span id="pack-expirationDateCarton2"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 711 (9m)</td>
+              <td><span id="pack-batchCode711"></span></td>
+              <td><span id="pack-expirationDateBag711"></span></td>
+              <td><span id="pack-expirationDateCarton711"></span></td>
+            </tr>
+            <tr>
+              <td>TOPACK 34 (9m)</td>
+              <td><span id="pack-batchCode34"></span></td>
+              <td><span id="pack-expirationDateBag34"></span></td>
+              <td><span id="pack-expirationDateCarton34"></span></td>
+            </tr>
+            <!-- 3IN1 -->
+            <tr>
+              <td>SANKO 48 (15m)</td>
+              <td><span id="pack-batchCode48"></span></td>
+              <td><span id="pack-expirationDateBag48"></span></td>
+              <td><span id="pack-expirationDateCarton48"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 26 (15m)</td>
+              <td><span id="pack-batchCode26"></span></td>
+              <td><span id="pack-expirationDateBag26"></span></td>
+              <td><span id="pack-expirationDateCarton26"></span></td>
+            </tr>
+            <tr>
+              <td>MESPACK 12 (15m)</td>
+              <td><span id="pack-batchCodeMes12"></span></td>
+              <td><span id="pack-expirationDateBagMes12"></span></td>
+              <td><span id="pack-expirationDateCartonMes12"></span></td>
+            </tr>
+            <tr>
+              <td>MESPACK 3 (15m)</td>
+              <td><span id="pack-batchCodeMes3"></span></td>
+              <td><span id="pack-expirationDateBagMes3"></span></td>
+              <td><span id="pack-expirationDateCartonMes3"></span></td>
+            </tr>
+            <!-- PSC -->
+            <tr>
+              <td>MESPACK (24m)</td>
+              <td><span id="pack-batchCodeGold24"></span></td>
+              <td><span id="pack-expirationDateBagGold24"></span></td>
+              <td><span id="pack-expirationDateCartonGold24"></span></td>
+            </tr>
+            <tr>
+              <td>MESPACK (18m)</td>
+              <td><span id="pack-batchCodeMes18"></span></td>
+              <td><span id="pack-expirationDateBagMes18"></span></td>
+              <td><span id="pack-expirationDateCartonMes18"></span></td>
+            </tr>
+            <tr>
+              <td>PSCUNI (18m)</td>
+              <td><span id="pack-batchCodeUni18"></span></td>
+              <td><span id="pack-expirationDateBagUni18"></span></td>
+              <td><span id="pack-expirationDateCartonUni18"></span></td>
+            </tr>
+            <tr>
+              <td>PSCTAWO (18m)</td>
+              <td><span id="pack-batchCodeTawo18"></span></td>
+              <td><span id="pack-expirationDateBagTawo18"></span></td>
+              <td><span id="pack-expirationDateCartonTawo18"></span></td>
+            </tr>
+            <tr>
+              <td>PSCWOLF (18m)</td>
+              <td><span id="pack-batchCodeWolf18"></span></td>
+              <td><span id="pack-expirationDateBagWolf18"></span></td>
+              <td><span id="pack-expirationDateCartonWolf18"></span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Bảng cho Filling Machine -->
       <div class="table-container mt-5">
-        <h4 class="mb-3">
-          <i class="fas fa-cogs"></i> Filling Machine Information
-        </h4>
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Group</th>
-                <th>Filling Machine</th>
-                <th>Batch Code</th>
-                <th>HSD Stick</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- SANKO 14 -->
-              <tr>
-                <td>2IN1</td>
-                <td>SANKO 14 (12M)</td>
-                <td id="fill-batchCodeS14"></td>
-                <td id="fill-expirationDateS14"></td>
-              </tr>
-              <!-- SANKO 12 -->
-              <tr>
-                <td>2IN1</td>
-                <td>SANKO 12</td>
-                <td id="fill-batchCodeS12"></td>
-                <td id="fill-expirationDateS12"></td>
-              </tr>
-              <!-- SANKO 7 -->
-              <tr>
-                <td>2IN1</td>
-                <td>SANKO 7</td>
-                <td id="fill-batchCodeS7"></td>
-                <td id="fill-expirationDateS7"></td>
-              </tr>
-              <!-- SANKO 11 -->
-              <tr>
-                <td>2IN1</td>
-                <td>SANKO 11</td>
-                <td id="fill-batchCodeS11"></td>
-                <td id="fill-expirationDateS11"></td>
-              </tr>
-              <!-- TOPACK 3 -->
-              <tr>
-                <td>2IN1</td>
-                <td>TOPACK 3</td>
-                <td id="fill-batchCodeT3"></td>
-                <td id="fill-expirationDateT3"></td>
-              </tr>
-              <!-- TOPACK 4 -->
-              <tr>
-                <td>2IN1</td>
-                <td>TOPACK 4</td>
-                <td id="fill-batchCodeT4"></td>
-                <td id="fill-expirationDateT4"></td>
-              </tr>
-              <!-- 3IN1 SANKO 4 -->
-              <tr>
-                <td>3IN1</td>
-                <td>SANKO 4</td>
-                <td id="fill-batchCodeS4"></td>
-                <td id="fill-expirationDateS4"></td>
-              </tr>
-              <!-- 3IN1 SANKO 8 -->
-              <tr>
-                <td>3IN1</td>
-                <td>SANKO 8</td>
-                <td id="fill-batchCodeS8"></td>
-                <td id="fill-expirationDateS8"></td>
-              </tr>
-              <!-- 3IN1 SANKO 2 -->
-              <tr>
-                <td>3IN1</td>
-                <td>SANKO 2</td>
-                <td id="fill-batchCodeS2"></td>
-                <td id="fill-expirationDateS2"></td>
-              </tr>
-              <!-- 3IN1 SANKO 6 -->
-              <tr>
-                <td>3IN1</td>
-                <td>SANKO 6</td>
-                <td id="fill-batchCodeS6"></td>
-                <td id="fill-expirationDateS6"></td>
-              </tr>
-              <!-- 3IN1 MESPACK 1 -->
-              <tr>
-                <td>3IN1</td>
-                <td>MESPACK 1</td>
-                <td id="fill-batchCodeM1"></td>
-                <td id="fill-expirationDateM1"></td>
-              </tr>
-              <!-- 3IN1 MESPACK 2 -->
-              <tr>
-                <td>3IN1</td>
-                <td>MESPACK 2</td>
-                <td id="fill-batchCodeM2"></td>
-                <td id="fill-expirationDateM2"></td>
-              </tr>
-              <!-- 3IN1 MESPACK 3 -->
-              <tr>
-                <td>3IN1</td>
-                <td>MESPACK 3 (of 3) (15M)</td>
-                <td id="fill-batchCodeM3"></td>
-                <td id="fill-expirationDateM3"></td>
-              </tr>
-              <!-- PSCMES (24M) -->
-              <tr>
-                <td>PSC</td>
-                <td>PSCMES (24M)</td>
-                <td id="fill-batchCodePscmes24"></td>
-                <td id="fill-expirationDatePscmes24"></td>
-              </tr>
-              <!-- PSCMES (18M) -->
-              <tr>
-                <td>PSC</td>
-                <td>PSCMES (18M)</td>
-                <td id="fill-batchCodePscmes18"></td>
-                <td id="fill-expirationDatePscmes18"></td>
-              </tr>
-              <!-- PSCUNI -->
-              <tr>
-                <td>PSC</td>
-                <td>PSCUNI (18M)</td>
-                <td id="fill-batchCodePscuni"></td>
-                <td id="fill-expirationDatePscuni"></td>
-              </tr>
-              <!-- TAM -->
-              <tr>
-                <td>PSC</td>
-                <td>TAM (of TAWO) (18M)</td>
-                <td id="fill-batchCodeTam"></td>
-                <td id="fill-expirationDateTam"></td>
-              </tr>
-              <!-- WOLF 1 -->
-              <tr>
-                <td>PSC</td>
-                <td>WOLF 1 (of TAWO) (18M)</td>
-                <td id="fill-batchCodeWolf1"></td>
-                <td id="fill-expirationDateWolf1"></td>
-              </tr>
-              <!-- WOLF 2 -->
-              <tr>
-                <td>PSC</td>
-                <td>WOLF 2 (of PSCWOLF) (18M)</td>
-                <td id="fill-batchCodeWolf2"></td>
-                <td id="fill-expirationDateWolf2"></td>
-              </tr>
-              <!-- WOLF 3 -->
-              <tr>
-                <td>PSC</td>
-                <td>WOLF 3 (of PSCWOLF) (18M)</td>
-                <td id="fill-batchCodeWolf3"></td>
-                <td id="fill-expirationDateWolf3"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <h3 class="text-center">Filling Machine Information</h3>
+        <table class="table table-bordered table-striped">
+          <thead class="thead-dark">
+            <tr>
+              <th>Production Line</th>
+              <th>Batch Code</th>
+              <th>Expiration Date (Stick)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 2IN1 -->
+            <tr>
+              <td>SANKO 14 (12m)</td>
+              <td><span id="fill-batchCodeS14"></span></td>
+              <td><span id="fill-expirationDateS14"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 12 (9m)</td>
+              <td><span id="fill-batchCodeS12"></span></td>
+              <td><span id="fill-expirationDateS12"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 7 (of 711) (9m)</td>
+              <td><span id="fill-batchCodeS7"></span></td>
+              <td><span id="fill-expirationDateS7"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 11 (of 711) (9m)</td>
+              <td><span id="fill-batchCodeS11"></span></td>
+              <td><span id="fill-expirationDateS11"></span></td>
+            </tr>
+            <tr>
+              <td>TOPACK 3 (of 34) (9m)</td>
+              <td><span id="fill-batchCodeT3"></span></td>
+              <td><span id="fill-expirationDateT3"></span></td>
+            </tr>
+            <tr>
+              <td>TOPACK 4 (of 34) (9m)</td>
+              <td><span id="fill-batchCodeT4"></span></td>
+              <td><span id="fill-expirationDateT4"></span></td>
+            </tr>
+            <!-- 3IN1 -->
+            <tr>
+              <td>SANKO 4 (of 48) (15m)</td>
+              <td><span id="fill-batchCodeS4"></span></td>
+              <td><span id="fill-expirationDateS4"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 8 (of 48) (15m)</td>
+              <td><span id="fill-batchCodeS8"></span></td>
+              <td><span id="fill-expirationDateS8"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 2 (of 26) (15m)</td>
+              <td><span id="fill-batchCodeS2"></span></td>
+              <td><span id="fill-expirationDateS2"></span></td>
+            </tr>
+            <tr>
+              <td>SANKO 6 (of 26) (15m)</td>
+              <td><span id="fill-batchCodeS6"></span></td>
+              <td><span id="fill-expirationDateS6"></span></td>
+            </tr>
+            <tr>
+              <td>MESPACK 1 (of 12) (15m)</td>
+              <td><span id="fill-batchCodeM1"></span></td>
+              <td><span id="fill-expirationDateM1"></span></td>
+            </tr>
+            <tr>
+              <td>MESPACK 2 (of 12) (15m)</td>
+              <td><span id="fill-batchCodeM2"></span></td>
+              <td><span id="fill-expirationDateM2"></span></td>
+            </tr>
+            <tr>
+              <td>MESPACK 3 (of 3) (15m)</td>
+              <td><span id="fill-batchCodeM3"></span></td>
+              <td><span id="fill-expirationDateM3"></span></td>
+            </tr>
+            <!-- PSC -->
+            <tr>
+              <td>PSCMES (24m)</td>
+              <td><span id="fill-batchCodePscmes24"></span></td>
+              <td><span id="fill-expirationDatePscmes24"></span></td>
+            </tr>
+            <tr>
+              <td>PSCMES (18m)</td>
+              <td><span id="fill-batchCodePscmes18"></span></td>
+              <td><span id="fill-expirationDatePscmes18"></span></td>
+            </tr>
+            <tr>
+              <td>PSCUNI (18m)</td>
+              <td><span id="fill-batchCodePscuni"></span></td>
+              <td><span id="fill-expirationDatePscuni"></span></td>
+            </tr>
+            <tr>
+              <td>TAM (of TAWO) (18m)</td>
+              <td><span id="fill-batchCodeTam"></span></td>
+              <td><span id="fill-expirationDateTam"></span></td>
+            </tr>
+            <tr>
+              <td>WOLF 1 (of TAWO) (18m)</td>
+              <td><span id="fill-batchCodeWolf1"></span></td>
+              <td><span id="fill-expirationDateWolf1"></span></td>
+            </tr>
+            <tr>
+              <td>WOLF 2 (of PSCWOLF) (18m)</td>
+              <td><span id="fill-batchCodeWolf2"></span></td>
+              <td><span id="fill-expirationDateWolf2"></span></td>
+            </tr>
+            <tr>
+              <td>WOLF 3 (of PSCWOLF) (18m)</td>
+              <td><span id="fill-batchCodeWolf3"></span></td>
+              <td><span id="fill-expirationDateWolf3"></span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <!-- ================== KHU VỰC VALIDATE BẰNG CAMERA ================== -->
+      <!-- ================== KHU VỰC VALIDATE BẰNG CAMERA (BỊ THIẾU) ================== -->
       <div class="validator-container mt-5">
         <h2 class="text-center mb-4">Code Validator via Camera</h2>
         <div class="card">
@@ -503,12 +419,11 @@
               </div>
             </div>
 
-            <!-- Div riêng cho điều khiển camera -->
-            <div id="camera-controls">
+            <!-- Nút điều khiển -->
+            <div class="mt-3">
               <button id="startCameraBtn" class="btn btn-primary" disabled>
                 <i class="fas fa-camera"></i> Start Camera
               </button>
-              <!-- THÊM NÚT UPLOAD -->
               <label
                 for="uploadInput"
                 id="uploadBtn"
@@ -523,7 +438,13 @@
                 accept="image/*"
                 style="display: none"
               />
-              <!-- KẾT THÚC PHẦN THÊM -->
+              <button
+                id="captureBtn"
+                class="btn btn-success"
+                style="display: none"
+              >
+                <i class="fas fa-crosshairs"></i> Capture & Validate
+              </button>
               <button
                 id="stopCameraBtn"
                 class="btn btn-danger"
@@ -531,78 +452,49 @@
               >
                 <i class="fas fa-stop-circle"></i> Stop Camera
               </button>
-              <div
-                id="cameraContainer"
-                class="mt-3"
-                style="display: none; position: relative"
-              >
-                <video
-                  id="videoElement"
-                  playsinline
-                  style="width: 100%; height: auto"
-                ></video>
-                <div id="viewfinder"></div>
-              </div>
-              <!-- Đưa nút Capture ra ngoài video feed -->
-              <button
-                id="captureBtn"
-                class="btn btn-success mt-2"
-                style="display: none"
-              >
-                <i class="fas fa-crosshairs"></i> Capture & Validate
-              </button>
             </div>
 
-            <!-- THÊM SPINNER VÀO ĐÂY -->
-            <div class="text-center mt-3">
-              <div
-                id="spinner"
-                class="spinner-border text-primary"
-                role="status"
-                style="display: none"
-              >
-                <span class="visually-hidden">Loading...</span>
-              </div>
-            </div>
-
-            <!-- KHU VỰC HIỂN THỊ KẾT QUẢ MỚI (NEW RESULT AREA) -->
+            <!-- Giao diện Camera -->
             <div
-              id="resultContainer"
-              class="mt-4"
-              style="
-                display: none;
-                border-top: 1px solid #dee2e6;
-                padding-top: 20px;
-              "
+              id="cameraContainer"
+              class="mt-3"
+              style="display: none; position: relative"
             >
+              <video
+                id="videoElement"
+                autoplay
+                playsinline
+                style="width: 100%; border-radius: 8px"
+              ></video>
+              <div id="viewfinder"></div>
+            </div>
+
+            <!-- Khu vực hiển thị kết quả -->
+            <div id="resultContainer" class="mt-4" style="display: none">
               <div class="row">
-                <!-- Cột hiển thị ảnh đã chụp -->
-                <div class="col-md-6 text-center">
-                  <h6><i class="fas fa-image"></i> Captured Image</h6>
+                <!-- Cột ảnh chụp -->
+                <div class="col-md-5 text-center">
+                  <h5><i class="fas fa-image"></i> Captured Image</h5>
                   <img
                     id="capturedImageDisplay"
-                    class="img-fluid border rounded shadow-sm"
-                    style="max-height: 300px"
+                    class="img-fluid rounded border"
                     alt="Captured Code"
                   />
                 </div>
-
-                <!-- Cột hiển thị kết quả chi tiết -->
-                <div class="col-md-6">
-                  <h6><i class="fas fa-tasks"></i> Analysis Result</h6>
-
-                  <!-- Trạng thái PASS/FAIL -->
+                <!-- Cột kết quả phân tích -->
+                <div class="col-md-7">
+                  <h5><i class="fas fa-tasks"></i> Analysis Result</h5>
                   <div
                     id="statusBadge"
-                    class="alert text-center font-weight-bold"
-                    role="alert"
-                  >
-                    Processing...
+                    class="alert alert-warning text-center font-weight-bold"
+                  ></div>
+                  <div id="spinner" class="text-center" style="display: none">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
                   </div>
-
-                  <!-- Form so sánh -->
-                  <div class="form-group">
-                    <label class="small text-muted"
+                  <div class="form-group mt-3">
+                    <label for="expectedTextInput"
                       >Expected Code (Standard):</label
                     >
                     <input
@@ -610,12 +502,10 @@
                       id="expectedTextInput"
                       class="form-control"
                       readonly
-                      style="background-color: #e9ecef; font-family: monospace"
                     />
                   </div>
-
                   <div class="form-group">
-                    <label class="small text-muted"
+                    <label for="detectedTextInput"
                       >AI Detected Code (Actual):</label
                     >
                     <input
@@ -623,10 +513,8 @@
                       id="detectedTextInput"
                       class="form-control"
                       readonly
-                      style="font-family: monospace; font-weight: bold"
                     />
                   </div>
-
                   <div
                     id="errorMessage"
                     class="text-danger small mt-2"
@@ -635,24 +523,10 @@
                 </div>
               </div>
             </div>
-
-            <p id="ocrStatus" class="mt-2 text-muted"></p>
-            <!-- Thêm dòng này để gỡ lỗi hình ảnh -->
-            <img
-              id="processedImage"
-              class="mt-2"
-              style="max-width: 100%; border: 1px solid #ddd"
-            />
-            <div
-              id="validationResult"
-              class="alert mt-3"
-              role="alert"
-              style="display: none"
-            ></div>
           </div>
         </div>
       </div>
-      <!-- ================================================================= -->
+      <!-- =========================================================================== -->
     </div>
 
     <!-- Load scripts at the end for better performance -->
