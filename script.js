@@ -879,73 +879,75 @@ async function processImageForValidation(imageBase64) {
   const expectedTextInput = document.getElementById("expectedTextInput");
   const errorMessage = document.getElementById("errorMessage");
 
-  // Reset và hiển thị giao diện xử lý
-  spinner.style.display = "block";
-  resultContainer.style.display = "block"; // Hiển thị container kết quả ngay
-  errorMessage.style.display = "none";
-  detectedTextInput.value = "";
-  capturedImageDisplay.src = imageBase64; // Hiển thị ảnh được cung cấp
-
+  // 1. Cập nhật giao diện ngay lập tức
+  resultContainer.style.display = "block";
+  capturedImageDisplay.src = imageBase64;
   statusBadge.className = "alert alert-warning text-center font-weight-bold";
   statusBadge.innerHTML =
     '<i class="fas fa-cog fa-spin"></i> Analyzing with AI...';
+  spinner.style.display = "block";
+  errorMessage.style.display = "none";
+  detectedTextInput.value = "";
+  expectedTextInput.value = "";
 
-  // --- LẤY CHUỖI KÝ TỰ CHUẨN VÀ KỊCH BẢN ---
-  const productSelect = document.getElementById("productSelect");
-  const codeTypeSelect = document.getElementById("codeTypeSelect");
-  const product = products.find((p) => p.batchId === productSelect.value);
-  const selectedCodeType = codeTypeSelect.value;
+  // 2. Trì hoãn phần logic nặng để trình duyệt có thời gian "vẽ" lại UI
+  setTimeout(async () => {
+    try {
+      // --- LẤY CHUỖI KÝ TỰ CHUẨN VÀ KỊCH BẢN ---
+      const productSelect = document.getElementById("productSelect");
+      const codeTypeSelect = document.getElementById("codeTypeSelect");
+      const product = products.find((p) => p.batchId === productSelect.value);
+      const selectedCodeType = codeTypeSelect.value;
 
-  if (!product) {
-    validateOcrResult({ success: false, error: "Product not selected." });
-    spinner.style.display = "none";
-    return;
-  }
+      if (!product) {
+        validateOcrResult({ success: false, error: "Product not selected." });
+        return;
+      }
 
-  const lineName = product.productionLine.toUpperCase();
-  let scenario = "solid"; // Mặc định là solid
-  if (lineName.includes("SANKO")) {
-    scenario = "dot";
-  }
-  // Bạn có thể thêm các điều kiện khác ở đây, ví dụ:
-  // else if (lineName.includes("DOMINO")) {
-  //   scenario = "laser";
-  // }
+      const lineName = product.productionLine.toUpperCase();
+      let scenario = "solid"; // Mặc định là solid
+      if (lineName.includes("SANKO")) {
+        scenario = "dot";
+      }
 
-  const expectedElementId =
-    selectedCodeType === "stick"
-      ? "expiryId"
-      : selectedCodeType === "bag"
-        ? "expiryBagId"
-        : "expiryCartonId";
+      const expectedElementId =
+        selectedCodeType === "stick"
+          ? "expiryId"
+          : selectedCodeType === "bag"
+            ? "expiryBagId"
+            : "expiryCartonId";
 
-  const expectedElement = document.getElementById(product[expectedElementId]);
-  if (!expectedElement) {
-    const errorMsg = `Configuration Error: Element ID '${product[expectedElementId]}' not found.`;
-    validateOcrResult({ success: false, error: errorMsg });
-    spinner.style.display = "none";
-    return;
-  }
+      const expectedElement = document.getElementById(
+        product[expectedElementId],
+      );
+      if (!expectedElement) {
+        const errorMsg = `Configuration Error: Element ID '${product[expectedElementId]}' not found.`;
+        validateOcrResult({ success: false, error: errorMsg });
+        return;
+      }
 
-  const expectedTextHTML = expectedElement.innerHTML;
-  const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ").trim();
-  expectedTextInput.value = expectedText;
+      const expectedTextHTML = expectedElement.innerHTML;
+      const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ").trim();
+      expectedTextInput.value = expectedText;
 
-  // --- GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
-  try {
-    // *** LƯU Ý: Đây là hàm gọi API giả lập. Bạn cần thay thế bằng logic gọi API thật. ***
-    const result = await callValidationApi(imageBase64, expectedText, scenario);
-    validateOcrResult(result); // Dùng hàm hiển thị kết quả mới
-  } catch (error) {
-    validateOcrResult({
-      success: false,
-      error: error.message,
-      foundText: "API Call Failed",
-      expectedText: expectedText,
-    });
-  } finally {
-    spinner.style.display = "none";
-  }
+      // --- GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
+      const result = await callValidationApi(
+        imageBase64,
+        expectedText,
+        scenario,
+      );
+      validateOcrResult(result);
+    } catch (error) {
+      validateOcrResult({
+        success: false,
+        error: error.message,
+        foundText: "API Call Failed",
+        expectedText: expectedTextInput.value, // Lấy giá trị đã được điền
+      });
+    } finally {
+      spinner.style.display = "none";
+    }
+  }, 0); // Thời gian trễ 0ms
 }
 
 /**
