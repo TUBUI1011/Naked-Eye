@@ -669,15 +669,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Khởi tạo các dropdown cho khu vực Validator
   populateAreaSelector();
-  populateGroupSelector(); // Chạy lần đầu để hiển thị dropdown group bị vô hiệu hóa
-  populateProductSelector(); // Chạy lần đầu để hiển thị dropdown line bị vô hiệu hóa
+  populateGroupSelector();
+  populateProductSelector();
 
   // Thêm event listener cho các dropdown của validator
   const areaSelect = document.getElementById("areaSelect");
   const groupSelect = document.getElementById("groupSelect");
   const productSelect = document.getElementById("productSelect");
   const startCameraBtn = document.getElementById("startCameraBtn");
-  const uploadBtn = document.getElementById("uploadBtn"); // Lấy nút upload
+  const uploadBtn = document.getElementById("uploadBtn");
 
   // Hàm kiểm tra và bật/tắt các nút hành động (Camera và Upload)
   function toggleActionButtons() {
@@ -685,10 +685,10 @@ document.addEventListener("DOMContentLoaded", function () {
       areaSelect.value && groupSelect.value && productSelect.value;
     if (allSelected) {
       startCameraBtn.disabled = false;
-      uploadBtn.classList.remove("btn-disabled"); // Kích hoạt nút upload
+      uploadBtn.classList.remove("btn-disabled");
     } else {
       startCameraBtn.disabled = true;
-      uploadBtn.classList.add("btn-disabled"); // Vô hiệu hóa nút upload
+      uploadBtn.classList.add("btn-disabled");
     }
   }
 
@@ -698,34 +698,25 @@ document.addEventListener("DOMContentLoaded", function () {
   if (areaSelect) {
     areaSelect.addEventListener("change", (event) => {
       populateGroupSelector(event.target.value);
-      populateProductSelector(); // Reset product selector
-      toggleActionButtons(); // Cập nhật trạng thái nút
+      populateProductSelector();
+      toggleActionButtons();
     });
   }
 
   if (groupSelect) {
     groupSelect.addEventListener("change", (event) => {
       populateProductSelector(areaSelect.value, event.target.value);
-      toggleActionButtons(); // Cập nhật trạng thái nút
+      toggleActionButtons();
     });
   }
   if (productSelect) {
     productSelect.addEventListener("change", toggleActionButtons);
   }
 
-  if (uploadBtn) {
-    uploadBtn.addEventListener("click", () => {
-      // Chỉ kích hoạt nếu nút không bị vô hiệu hóa
-      if (!uploadBtn.classList.contains("btn-disabled")) {
-        uploadInput.click();
-      }
-    });
-  }
-
   // Xử lý sự kiện cho tính năng Validate bằng Camera và Upload
   const stopCameraBtn = document.getElementById("stopCameraBtn");
   const captureBtn = document.getElementById("captureBtn");
-  const uploadInput = document.getElementById("uploadInput"); // Lấy input ẩn
+  const uploadInput = document.getElementById("uploadInput");
 
   if (startCameraBtn) {
     startCameraBtn.addEventListener("click", startCamera);
@@ -736,7 +727,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (captureBtn) {
     captureBtn.addEventListener("click", captureAndValidate);
   }
-  // Gán sự kiện cho input file
   if (uploadInput) {
     uploadInput.addEventListener("change", handleImageUpload);
   }
