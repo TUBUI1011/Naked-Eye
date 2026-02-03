@@ -1,4 +1,17 @@
 // =================================================================================
+// KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP (AUTH CHECK)
+// =================================================================================
+// Đoạn mã này phải được đặt ở đầu file để chạy trước tiên.
+(function () {
+  const isLoggedIn = sessionStorage.getItem("isLoggedIn");
+  if (isLoggedIn !== "true") {
+    // Nếu chưa đăng nhập, chuyển hướng về trang login
+    // Đảm bảo tên file là 'loginpage.html'
+    window.location.href = "loginpage.html";
+  }
+})();
+
+// =================================================================================
 // KHU VỰC CẤU HÌNH TRUNG TÂM (CENTRAL CONFIGURATION)
 // =================================================================================
 

@@ -1,0 +1,242 @@
+<!doctype html>
+
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Naked Eye - Mobile Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#137fec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Inter"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .form-input:focus {
+        border-color: #137fec !important;
+        ring: 0 !important;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display transition-colors duration-300"
+  >
+    <div class="flex h-full grow flex-col">
+      <!-- Top Navigation / Logo Section -->
+      <header
+        class="flex items-center justify-center whitespace-nowrap border-b border-solid border-[#e7edf3] dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-5 sticky top-0 z-10"
+      >
+        <div class="flex items-center gap-3 text-[#0d141b] dark:text-white">
+          <div
+            class="size-8 flex items-center justify-center bg-primary rounded-lg text-white"
+          >
+            <span
+              class="material-symbols-outlined text-2xl"
+              data-icon="visibility"
+              >visibility</span
+            >
+          </div>
+          <h2
+            class="text-[#0d141b] dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]"
+          >
+            Naked Eye
+          </h2>
+        </div>
+      </header>
+      <main class="flex-1 flex flex-col justify-center items-center px-4 py-10">
+        <div
+          class="w-full max-w-[440px] bg-white dark:bg-slate-900/50 p-6 md:p-10 rounded-xl shadow-sm border border-[#e7edf3] dark:border-slate-800"
+        >
+          <!-- Headline Text -->
+          <div class="mb-8">
+            <h1
+              class="text-[#0d141b] dark:text-white tracking-tight text-3xl font-bold leading-tight text-center pb-2"
+            >
+              Welcome Back
+            </h1>
+            <p
+              class="text-[#4c739a] dark:text-slate-400 text-base font-normal leading-normal text-center"
+            >
+              Sign in to verify your code format.
+            </p>
+          </div>
+          <!-- Login Form -->
+          <form id="loginForm" class="flex flex-col gap-4">
+            <!-- Email Field -->
+            <div class="flex flex-col gap-2">
+              <label class="flex flex-col w-full">
+                <p
+                  class="text-[#0d141b] dark:text-slate-200 text-sm font-semibold leading-normal pb-2 px-1"
+                >
+                  Email Address
+                </p>
+                <div class="relative">
+                  <span
+                    class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#4c739a] text-xl"
+                    >mail</span
+                  >
+                  <input
+                    id="email"
+                    class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141b] dark:text-white focus:outline-0 focus:ring-0 border border-[#cfdbe7] dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:border-primary h-14 placeholder:text-[#4c739a] pl-12 pr-4 text-base font-normal leading-normal transition-all"
+                    placeholder="name@company.com"
+                    type="email"
+                    required
+                  />
+                </div>
+              </label>
+            </div>
+            <!-- Password Field -->
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center px-1">
+                <p
+                  class="text-[#0d141b] dark:text-slate-200 text-sm font-semibold leading-normal pb-2"
+                >
+                  Password
+                </p>
+                <a
+                  class="text-primary text-xs font-semibold hover:underline mb-2"
+                  href="#"
+                  >Forgot password?</a
+                >
+              </div>
+              <label class="flex flex-col w-full">
+                <div class="relative">
+                  <span
+                    class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#4c739a] text-xl"
+                    >lock</span
+                  >
+                  <input
+                    id="password"
+                    class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141b] dark:text-white focus:outline-0 focus:ring-0 border border-[#cfdbe7] dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:border-primary h-14 placeholder:text-[#4c739a] pl-12 pr-12 text-base font-normal leading-normal transition-all"
+                    placeholder="Enter your password"
+                    type="password"
+                    required
+                  />
+                  <button
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-[#4c739a]"
+                    type="button"
+                  >
+                    <span class="material-symbols-outlined text-xl"
+                      >visibility_off</span
+                    >
+                  </button>
+                </div>
+              </label>
+            </div>
+            <!-- Error Message Placeholder -->
+            <p id="loginError" class="text-red-500 text-sm text-center h-5"></p>
+            <!-- Submit Button -->
+            <div class="pt-2">
+              <button
+                class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-lg text-lg transition-colors flex items-center justify-center gap-2 shadow-md shadow-primary/20"
+                type="submit"
+              >
+                Sign In
+                <span class="material-symbols-outlined text-xl">login</span>
+              </button>
+            </div>
+            <!-- Divider -->
+            <div class="relative flex py-5 items-center">
+              <div
+                class="flex-grow border-t border-[#e7edf3] dark:border-slate-800"
+              ></div>
+              <span class="flex-shrink mx-4 text-[#4c739a] text-sm"
+                >Or continue with</span
+              >
+              <div
+                class="flex-grow border-t border-[#e7edf3] dark:border-slate-800"
+              ></div>
+            </div>
+            <!-- Social Logins -->
+            <div class="grid grid-cols-2 gap-4">
+              <button
+                class="flex items-center justify-center gap-2 h-12 border border-[#cfdbe7] dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-[#0d141b] dark:text-white font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                type="button"
+              >
+                <img
+                  alt=""
+                  class="w-5 h-5"
+                  data-alt="Google company logo icon"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnXtjRe0P0zHCNZ4jVV5yP6XCXtbWuAxfAhml_yh8jYYU2CEkJjfaVfEiH54Xv6KTjVZc4ZQdHTTSwVU7wX6ys7cbfJZQ5O-dRrHvTD_PRPNCOeoSai0jNgWLU67tzEjAVR46STvxnYOo6VvkkJQHLhHmB9YQAqpxX9QTI7R_ybRwZih639H1CrGz__8ui4NvCu5He2Iif8YWhQ2Gs7ooK-ym5vegayG_ZR31QDWwWQYhcrSUymGrww6SUuZQ4iserGX2QJEleKgA"
+                />
+                Google
+              </button>
+              <button
+                class="flex items-center justify-center gap-2 h-12 border border-[#cfdbe7] dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-[#0d141b] dark:text-white font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                type="button"
+              >
+                <span class="material-symbols-outlined text-xl">terminal</span>
+                GitHub
+              </button>
+            </div>
+          </form>
+          <!-- Footer Links -->
+          <div class="mt-10 text-center">
+            <p class="text-[#4c739a] dark:text-slate-400 text-sm">
+              Don't have an account?
+              <a class="text-primary font-bold hover:underline ml-1" href="#"
+                >Create an account</a
+              >
+            </p>
+          </div>
+        </div>
+        <!-- Language/Theme Toggle -->
+        <div class="mt-8 flex gap-6 text-[#4c739a] text-sm font-medium">
+          <button class="hover:text-primary flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">language</span>
+            English
+          </button>
+          <button
+            class="hover:text-primary flex items-center gap-1"
+            onclick="document.documentElement.classList.toggle('dark')"
+          >
+            <span class="material-symbols-outlined text-sm">contrast</span>
+            Toggle Theme
+          </button>
+        </div>
+      </main>
+      <!-- Tooltip or Help Bubble -->
+      <div class="fixed bottom-6 right-6">
+        <button
+          class="bg-white dark:bg-slate-800 border border-[#cfdbe7] dark:border-slate-700 size-12 rounded-full flex items-center justify-center shadow-lg text-primary"
+        >
+          <span class="material-symbols-outlined">help_outline</span>
+        </button>
+      </div>
+    </div>
+    <script src="login.js"></script>
+  </body>
+</html>
