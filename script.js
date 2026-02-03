@@ -678,6 +678,15 @@ document.addEventListener("DOMContentLoaded", function () {
     productSelect.addEventListener("change", toggleActionButtons);
   }
 
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", () => {
+      // Chỉ kích hoạt nếu nút không bị vô hiệu hóa
+      if (!uploadBtn.classList.contains("btn-disabled")) {
+        uploadInput.click();
+      }
+    });
+  }
+
   // Xử lý sự kiện cho tính năng Validate bằng Camera và Upload
   const stopCameraBtn = document.getElementById("stopCameraBtn");
   const captureBtn = document.getElementById("captureBtn");
@@ -699,6 +708,77 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // =================================================================================
+// KHU VỰC XỬ LÝ CAMERA
+// =================================================================================
+
+/**
+ * Bắt đầu luồng video từ camera và hiển thị nó.
+ */
+function startCamera() {
+  const video = document.getElementById("videoElement");
+  const cameraContainer = document.getElementById("cameraContainer");
+  const startCameraBtn = document.getElementById("startCameraBtn");
+  const stopCameraBtn = document.getElementById("stopCameraBtn");
+  const captureBtn = document.getElementById("captureBtn");
+  const uploadBtn = document.getElementById("uploadBtn");
+
+  // Hiển thị giao diện camera
+  cameraContainer.style.display = "block";
+  startCameraBtn.style.display = "none";
+  stopCameraBtn.style.display = "inline-block";
+  captureBtn.style.display = "inline-block";
+
+  // Vô hiệu hóa nút Upload khi camera đang chạy
+  uploadBtn.classList.add("btn-disabled");
+
+  // Truy cập camera
+  navigator.mediaDevices
+    .getUserMedia({ video: { facingMode: "environment" } })
+    .then((stream) => {
+      video.srcObject = stream;
+      video.play();
+    })
+    .catch((err) => {
+      console.error("Error accessing camera: ", err);
+      alert("Could not access the camera. Please check permissions.");
+      stopCamera(); // Reset UI nếu camera lỗi
+    });
+}
+
+/**
+ * Dừng luồng video từ camera và ẩn giao diện.
+ */
+function stopCamera() {
+  const video = document.getElementById("videoElement");
+  const cameraContainer = document.getElementById("cameraContainer");
+  const startCameraBtn = document.getElementById("startCameraBtn");
+  const stopCameraBtn = document.getElementById("stopCameraBtn");
+  const captureBtn = document.getElementById("captureBtn");
+  const uploadBtn = document.getElementById("uploadBtn");
+
+  // Dừng stream video
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach((track) => track.stop());
+    video.srcObject = null;
+  }
+
+  // Reset giao diện
+  cameraContainer.style.display = "none";
+  startCameraBtn.style.display = "inline-block";
+  stopCameraBtn.style.display = "none";
+  captureBtn.style.display = "none";
+
+  // Kích hoạt lại nút Upload (nếu các dropdown đã được chọn)
+  const allSelected =
+    document.getElementById("areaSelect").value &&
+    document.getElementById("groupSelect").value &&
+    document.getElementById("productSelect").value;
+  if (allSelected) {
+    uploadBtn.classList.remove("btn-disabled");
+  }
+}
+
+// =================================================================================
 // KHU VỰC XỬ LÝ UPLOAD VÀ CHỤP ẢNH
 // =================================================================================
 
@@ -712,11 +792,22 @@ function handleImageUpload(event) {
     return;
   }
 
+  // Vô hiệu hóa nút camera khi bắt đầu upload
+  const startCameraBtn = document.getElementById("startCameraBtn");
+  if (startCameraBtn) {
+    startCameraBtn.disabled = true;
+  }
+
   const reader = new FileReader();
   reader.onload = function (e) {
     const imageBase64 = e.target.result;
     // Sau khi có ảnh, gọi hàm xử lý chung
-    processImageForValidation(imageBase64);
+    processImageForValidation(imageBase64).finally(() => {
+      // Kích hoạt lại nút camera sau khi xử lý xong
+      if (startCameraBtn) {
+        startCameraBtn.disabled = false;
+      }
+    });
   };
   reader.readAsDataURL(file);
 
@@ -771,362 +862,12 @@ async function captureAndValidate() {
 
   const imageBase64 = canvas.toDataURL("image/png");
 
-  // Sau khi có ảnh, gọi hàm xử lý chung
-  await processImageForValidation(imageBase64);
-}
-
-/**
- * HÀM XỬ LÝ CHUNG: Nhận ảnh, gọi API và hiển thị kết quả.
- * @param {string} imageBase64 - Dữ liệu ảnh dưới dạng base64.
- */
-async function processImageForValidation(imageBase64) {
-  const spinner = document.getElementById("spinner");
-  const resultContainer = document.getElementById("resultContainer");
-  const capturedImageDisplay = document.getElementById("capturedImageDisplay");
-  const statusBadge = document.getElementById("statusBadge");
-  const detectedTextInput = document.getElementById("detectedTextInput");
-  const expectedTextInput = document.getElementById("expectedTextInput");
-  const errorMessage = document.getElementById("errorMessage");
-
-  // Reset và hiển thị giao diện xử lý
-  spinner.style.display = "block";
-  resultContainer.style.display = "block";
-  errorMessage.style.display = "none";
-  detectedTextInput.value = "";
-  capturedImageDisplay.src = imageBase64;
-
-  statusBadge.className = "alert alert-warning text-center font-weight-bold";
-  statusBadge.innerHTML =
-    '<i class="fas fa-cog fa-spin"></i> Analyzing with AI...';
-
-  // --- LẤY CHUỖI KÝ TỰ CHUẨN VÀ KỊCH BẢN ---
-  const productSelect = document.getElementById("productSelect");
-  const codeTypeSelect = document.getElementById("codeTypeSelect");
-  const product = products.find((p) => p.batchId === productSelect.value);
-  const selectedCodeType = codeTypeSelect.value;
-
-  if (!product) {
-    validateOcrResult({ success: false, error: "Product not selected." });
-    spinner.style.display = "none";
-    return;
-  }
-
-  const lineName = product.productionLine.toUpperCase();
-  let scenario = "solid";
-  if (lineName.includes("SANKO")) {
-    scenario = "dot";
-  }
-
-  const expectedElementId =
-    selectedCodeType === "stick"
-      ? "expiryId"
-      : selectedCodeType === "bag"
-        ? "expiryBagId"
-        : "expiryCartonId";
-
-  const expectedElement = document.getElementById(product[expectedElementId]);
-  if (!expectedElement) {
-    const errorMsg = `Configuration Error: Element ID '${product[expectedElementId]}' not found.`;
-    validateOcrResult({ success: false, error: errorMsg });
-    spinner.style.display = "none";
-    return;
-  }
-
-  const expectedTextHTML = expectedElement.innerHTML;
-  const expectedText = expectedTextHTML.replace(/<br\s*\/?>/gi, " ").trim();
-  expectedTextInput.value = expectedText;
-
-  // --- GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
-  try {
-    const result = await callValidationApi(imageBase64, expectedText, scenario);
-    validateOcrResult(result);
-  } catch (error) {
-    validateOcrResult({
-      success: false,
-      error: error.message,
-      foundText: "API Call Failed",
-      expectedText: expectedText,
-    });
-  } finally {
-    spinner.style.display = "none";
-  }
-}
-
-/**
- * Xử lý sự kiện khi người dùng nhấn nút "Calculate" từ Batch Code.
- */
-function handleCalcFromBatch() {
-  const batchInput = document.getElementById("batchInput").value.trim();
-  const resultDiv = document.getElementById("calcResult");
-
-  // Regex để trích xuất năm (1 chữ số) và ngày Julian (3 chữ số)
-  const match = batchInput.match(/^(\d)(\d{3})/);
-
-  if (match) {
-    const yearDigit = parseInt(match[1], 10);
-    const julianDay = parseInt(match[2], 10);
-
-    // Xác định thế kỷ (giả định năm 202x)
-    const currentYear = new Date().getFullYear();
-    const currentCentury = Math.floor(currentYear / 10) * 10;
-    const productionYear = currentCentury + yearDigit;
-
-    const productionDate = julianToDate(productionYear, julianDay);
-    resultDiv.innerHTML = `<strong>Production Date:</strong> ${formatDateWithSlashes(
-      productionDate,
-    )}`;
-    resultDiv.className = "alert alert-success mt-4";
-    resultDiv.style.display = "block";
-  } else {
-    resultDiv.innerHTML =
-      "<strong>Invalid Batch Code format.</strong> Expected format: YJJJ...";
-    resultDiv.className = "alert alert-danger mt-4";
-    resultDiv.style.display = "block";
-  }
-}
-
-/**
- * Xử lý sự kiện khi người dùng nhấn nút "Calculate" từ Hạn sử dụng.
- */
-function handleCalcFromExpiry() {
-  const expiryInput = document.getElementById("expiryInput").value.trim();
-  const shelfLife = parseInt(
-    document.getElementById("shelfLifeSelect").value,
-    10,
-  );
-  const resultDiv = document.getElementById("calcResult");
-
-  const expiryDate = parseDateString(expiryInput);
-
-  if (expiryDate) {
-    const productionDate = subtractMonths(expiryDate, shelfLife);
-    resultDiv.innerHTML = `<strong>Calculated Production Date:</strong> ${formatDateWithSlashes(
-      productionDate,
-    )}`;
-    resultDiv.className = "alert alert-success mt-4";
-    resultDiv.style.display = "block";
-  } else {
-    resultDiv.innerHTML =
-      "<strong>Invalid Date format.</strong> Please use DD.MM.YYYY.";
-    resultDiv.className = "alert alert-danger mt-4";
-    resultDiv.style.display = "block";
-  }
-}
-
-// =================================================================================
-// KHU VỰC VALIDATE BẰNG CAMERA (CAMERA VALIDATION)
-// =================================================================================
-
-let videoStream = null; // Biến toàn cục để lưu stream của camera
-
-/**
- * Tăng độ tương phản của ảnh trên canvas.
- * @param {ImageData} imageData - Dữ liệu ảnh từ canvas.
- * @param {number} contrast - Mức độ tương phản (100 là không thay đổi).
- */
-function applyContrast(imageData, contrast) {
-  const data = imageData.data;
-  contrast = contrast / 100 + 1; // convert to factor
-  const intercept = 128 * (1 - contrast);
-  for (let i = 0; i < data.length; i += 4) {
-    data[i] = data[i] * contrast + intercept;
-    data[i + 1] = data[i + 1] * contrast + intercept;
-    data[i + 2] = data[i + 2] * contrast + intercept;
-  }
-}
-
-/**
- * Tìm đường viền lớn nhất trong ảnh đã được nhị phân hóa.
- * Đây là bước cốt lõi để tự động xác định vùng chứa văn bản.
- * @param {ImageData} imageData - Dữ liệu ảnh đã được xử lý.
- * @returns {object|null} - Bounding box { x, y, width, height } của vùng văn bản hoặc null.
- */
-function findTextBoundingBox(imageData) {
-  const { data, width, height } = imageData;
-  const visited = new Uint8Array(width * height);
-  let maxArea = 0;
-  let bestBox = null;
-  // Duyệt qua từng pixel trong ảnh
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const index = y * width + x;
-      // Chỉ bắt đầu tìm kiếm từ pixel đen (văn bản) chưa được duyệt
-      if (data[index * 4] === 0 && !visited[index]) {
-        const points = [];
-        const stack = [[x, y]];
-        visited[index] = 1;
-        let minX = x,
-          maxX = x,
-          minY = y,
-          maxY = y;
-        // Sử dụng thuật toán DFS để tìm tất cả các pixel kết nối
-        while (stack.length > 0) {
-          const [cx, cy] = stack.pop();
-          points.push([cx, cy]);
-          minX = Math.min(minX, cx);
-          maxX = Math.max(maxX, cx);
-          minY = Math.min(minY, cy);
-          maxY = Math.max(maxY, cy);
-
-          // Kiểm tra 8 pixel xung quanh
-          for (let ny = cy - 1; ny <= cy + 1; ny++) {
-            for (let nx = cx - 1; nx <= cx + 1; nx++) {
-              if (
-                nx >= 0 &&
-                nx < width &&
-                ny >= 0 &&
-                ny < height &&
-                !visited[ny * width + nx] &&
-                data[(ny * width + nx) * 4] === 0
-              ) {
-                visited[ny * width + nx] = 1;
-                stack.push([nx, ny]);
-              }
-            }
-          }
-        }
-
-        const area = (maxX - minX + 1) * (maxY - minY + 1);
-        if (area > maxArea) {
-          maxArea = area;
-          bestBox = {
-            x: minX,
-            y: minY,
-            width: maxX - minX + 1,
-            height: maxY - minY + 1,
-          };
-        }
-      }
-    }
-  }
-  return bestBox;
-}
-
-/**
- * Khởi động camera và hiển thị video feed.
- */
-async function startCamera() {
-  const video = document.getElementById("videoElement");
-  const cameraFeed = document.getElementById("cameraFeed");
-  const startBtn = document.getElementById("startCameraBtn");
-  const stopBtn = document.getElementById("stopCameraBtn");
-  const captureBtn = document.getElementById("captureBtn");
-  const ocrStatus = document.getElementById("ocrStatus");
-
-  // Ẩn nút Start, hiện các nút điều khiển camera
-  startBtn.style.display = "none";
-  stopBtn.style.display = "inline-block";
-  cameraFeed.style.display = "block";
-  captureBtn.style.display = "block";
-
-  ocrStatus.textContent = "Starting camera...";
-
-  try {
-    // Yêu cầu truy cập camera sau của thiết bị với độ phân giải cao hơn
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "environment", // Ưu tiên camera sau
-        width: { ideal: 1920 }, // Tăng độ phân giải để có ảnh nét hơn
-        height: { ideal: 1080 },
-      },
-    });
-    videoStream = stream; // Lưu stream lại để có thể dừng sau này
-    video.srcObject = stream;
-    video.onloadedmetadata = () => {
-      video.play();
-      ocrStatus.textContent = "Camera ready. Position the code in the box.";
-    };
-  } catch (err) {
-    console.error("Error accessing camera: ", err);
-    ocrStatus.textContent =
-      "Error: Could not access camera. Please check permissions.";
-    ocrStatus.className = "text-danger";
-    stopCamera(); // Gọi hàm stop để reset giao diện
-  }
-}
-
-/**
- * Dừng camera và reset giao diện về trạng thái ban đầu.
- */
-function stopCamera() {
-  const video = document.getElementById("videoElement");
-  const cameraFeed = document.getElementById("cameraFeed");
-  const startBtn = document.getElementById("startCameraBtn");
-  const stopBtn = document.getElementById("stopCameraBtn");
-  const captureBtn = document.getElementById("captureBtn");
-  const ocrStatus = document.getElementById("ocrStatus");
-  const validationResult = document.getElementById("validationResult");
-
-  // Dừng tất cả các track trong stream
-  if (videoStream) {
-    videoStream.getTracks().forEach((track) => track.stop());
-    videoStream = null;
-  }
-
-  // Reset các thành phần giao diện
-  video.srcObject = null;
-  startBtn.style.display = "inline-block";
-  stopBtn.style.display = "none";
-  cameraFeed.style.display = "none";
-  captureBtn.style.display = "none";
-  ocrStatus.textContent = "";
-  validationResult.style.display = "none";
-}
-
-// Hàm mới để gọi API backend, gửi cả ảnh, chuỗi mong đợi và kịch bản xử lý
-async function callValidationApi(base64Image, expectedText, scenario) {
-  try {
-    // Thay đổi URL này thành URL của backend khi deploy
-    const response = await fetch(
-      "https://alexia-unvitriolized-unhideously.ngrok-free.dev/api/validate-code",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image: base64Image,
-          expectedText: expectedText,
-          scenario: scenario, // Gửi thêm kịch bản xử lý
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Backend API error");
-    }
-
-    // Backend sẽ trả về kết quả cuối cùng
-    // ví dụ: { success: true, foundText: "...", expectedText: "..." }
-    return await response.json();
-  } catch (error) {
-    console.error("Error calling validation API:", error);
-    // Trả về một đối tượng lỗi để FE có thể xử lý
-    return {
-      success: false,
-      error: error.message,
-      foundText: "N/A",
-      expectedText: expectedText,
-    };
-  }
-}
-
-/**
- * Chụp ảnh từ camera và bắt đầu quá trình xác thực.
- */
-async function captureAndValidate() {
-  // ... (Nội dung hàm này giữ nguyên)
-  // ...
-  const imageBase64 = canvas.toDataURL("image/png");
-
   // Gọi hàm xử lý chung
   await processImageForValidation(imageBase64);
 }
 
 /**
- * Hàm xử lý chính: Nhận ảnh base64, lấy thông tin, gọi API và hiển thị kết quả.
- * Được sử dụng bởi cả luồng chụp ảnh và luồng upload.
+ * HÀM XỬ LÝ CHUNG: Nhận ảnh, gọi API và hiển thị kết quả.
  * @param {string} imageBase64 - Dữ liệu ảnh dưới dạng base64.
  */
 async function processImageForValidation(imageBase64) {
@@ -1192,6 +933,7 @@ async function processImageForValidation(imageBase64) {
 
   // --- GỌI API BACKEND VÀ NHẬN KẾT QUẢ ---
   try {
+    // *** LƯU Ý: Đây là hàm gọi API giả lập. Bạn cần thay thế bằng logic gọi API thật. ***
     const result = await callValidationApi(imageBase64, expectedText, scenario);
     validateOcrResult(result); // Dùng hàm hiển thị kết quả mới
   } catch (error) {
@@ -1203,6 +945,55 @@ async function processImageForValidation(imageBase64) {
     });
   } finally {
     spinner.style.display = "none";
+  }
+}
+
+/**
+ * [HÀM MẪU] Gửi dữ liệu ảnh và thông tin đến backend để xử lý.
+ * BẠN CẦN THAY THẾ NỘI DUNG HÀM NÀY BẰNG LOGIC GỌI API THỰC TẾ.
+ * @param {string} imageBase64 - Dữ liệu ảnh base64.
+ * @param {string} expectedText - Chuỗi ký tự mong đợi.
+ * @param {string} scenario - Kịch bản OCR ('dot', 'solid', 'laser').
+ * @returns {Promise<object>} - Promise chứa kết quả từ backend.
+ */
+async function callValidationApi(imageBase64, expectedText, scenario) {
+  console.log("Calling validation API with:", { expectedText, scenario });
+
+  // **BẠN CẦN THAY THẾ URL DƯỚI ĐÂY BẰNG ENDPOINT API THỰC TẾ CỦA BẠN**
+  const API_ENDPOINT =
+    "https://alexia-unvitriolized-unhideously.ngrok-free.dev/api/validate-code";
+
+  try {
+    const response = await fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Thêm các header khác nếu cần, ví dụ: Authorization
+        // 'Authorization': 'Bearer YOUR_API_KEY'
+      },
+      body: JSON.stringify({
+        image: imageBase64, // Ảnh dưới dạng base64
+        expected: expectedText, // Chuỗi ký tự mong đợi
+        scenario: scenario, // Kịch bản OCR ('dot', 'solid', 'laser')
+      }),
+    });
+
+    if (!response.ok) {
+      // Xử lý các lỗi từ phía server (ví dụ: 400, 500)
+      const errorData = await response.json().catch(() => ({})); // Cố gắng đọc lỗi từ body
+      const errorMessage =
+        errorData.message ||
+        `API request failed with status ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
+    // Trả về dữ liệu JSON từ API
+    return await response.json();
+  } catch (error) {
+    // Xử lý các lỗi mạng (ví dụ: không kết nối được server)
+    console.error("API Call Error:", error);
+    // Ném lỗi để hàm processImageForValidation có thể bắt và hiển thị
+    throw new Error(`Network or API error: ${error.message}`);
   }
 }
 
@@ -1319,3 +1110,98 @@ function populateProductSelector(selectedArea, selectedGroup) {
 
   productSelect.disabled = false;
 }
+
+/**
+ * Xử lý sự kiện khi nhấn nút "Calculate" từ Batch Code.
+ */
+function handleCalcFromBatch() {
+  const batchInput = document
+    .getElementById("batchInput")
+    .value.trim()
+    .toUpperCase();
+  const resultDiv = document.getElementById("calcResult");
+
+  if (batchInput.length < 9) {
+    resultDiv.innerHTML =
+      "<strong>Error:</strong> Batch Code must be at least 9 characters long.";
+    resultDiv.className = "alert alert-danger mt-4";
+    resultDiv.style.display = "block";
+    return;
+  }
+
+  const yearDigit = parseInt(batchInput.charAt(0), 10);
+  const julianDay = parseInt(batchInput.substring(1, 4), 10);
+  const suffix = batchInput.slice(-1);
+
+  const currentYear = new Date().getFullYear();
+  const currentCentury = Math.floor(currentYear / 100) * 100;
+  const productionYear =
+    currentCentury +
+    (currentYear % 100) -
+    (currentYear % 10 < yearDigit ? 10 : 0) +
+    yearDigit;
+
+  const productionDate = julianToDate(productionYear, julianDay);
+
+  if (isNaN(productionDate.getTime())) {
+    resultDiv.innerHTML = "<strong>Error:</strong> Invalid Batch Code format.";
+    resultDiv.className = "alert alert-danger mt-4";
+    resultDiv.style.display = "block";
+    return;
+  }
+
+  const product = products.find((p) => p.batchSuffix === suffix);
+  const shelfLife = product ? product.shelfLife : "Unknown";
+  const line = product ? product.productionLine : "Unknown";
+
+  resultDiv.innerHTML = `
+    <strong>Production Date:</strong> ${formatDate(productionDate)}<br>
+    <strong>Associated Line/Suffix:</strong> ${line} (Suffix: ${suffix})<br>
+    <strong>Shelf Life:</strong> ${shelfLife} months
+  `;
+  resultDiv.className = "alert alert-success mt-4";
+  resultDiv.style.display = "block";
+}
+
+/**
+ * Xử lý sự kiện khi nhấn nút "Calculate" từ Expiration Date.
+ */
+function handleCalcFromExpiry() {
+  const expiryInput = document.getElementById("expiryInput").value.trim();
+  const shelfLife = parseInt(
+    document.getElementById("shelfLifeSelect").value,
+    10,
+  );
+  const resultDiv = document.getElementById("calcResult");
+
+  const expiryDate = parseDateString(expiryInput);
+
+  if (!expiryDate) {
+    resultDiv.innerHTML =
+      "<strong>Error:</strong> Invalid date format. Please use DD.MM.YYYY.";
+    resultDiv.className = "alert alert-danger mt-4";
+    resultDiv.style.display = "block";
+    return;
+  }
+
+  const productionDate = subtractMonths(expiryDate, shelfLife);
+
+  resultDiv.innerHTML = `<strong>Calculated Production Date:</strong> ${formatDate(productionDate)}`;
+  resultDiv.className = "alert alert-success mt-4";
+  resultDiv.style.display = "block";
+}
+
+const UI_ELEMENTS = {
+  AREA_SELECT: "areaSelect",
+  GROUP_SELECT: "groupSelect",
+  PRODUCT_SELECT: "productSelect",
+  START_CAMERA_BTN: "startCameraBtn",
+  STOP_CAMERA_BTN: "stopCameraBtn",
+  CAPTURE_BTN: "captureBtn",
+  UPLOAD_BTN: "uploadBtn",
+  BATCH_INPUT: "batchInput",
+  EXPIRY_INPUT: "expiryInput",
+  SHELF_LIFE_SELECT: "shelfLifeSelect",
+};
+
+// sử dụng: document.getElementById(UI_ELEMENTS.AREA_SELECT)
