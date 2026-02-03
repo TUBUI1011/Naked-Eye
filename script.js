@@ -338,6 +338,30 @@ const products = [
 // =================================================================================
 
 /**
+ * Lấy ngày sản xuất "kinh doanh" hiện tại.
+ * Một ngày sản xuất kéo dài từ 5:40 sáng hôm nay đến 5:39 sáng hôm sau.
+ * @returns {Date} - Đối tượng Date của ngày sản xuất hiện tại.
+ */
+function getBusinessDate() {
+  const now = new Date();
+  const businessHourStart = 5; // 5 giờ
+  const businessMinuteStart = 40; // 40 phút
+
+  // Nếu thời gian hiện tại trước 5:40 sáng
+  if (
+    now.getHours() < businessHourStart ||
+    (now.getHours() === businessHourStart &&
+      now.getMinutes() < businessMinuteStart)
+  ) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1); // Lùi lại 1 ngày
+    return yesterday;
+  }
+  // Nếu không, trả về ngày hiện tại
+  return now;
+}
+
+/**
  * Thêm một số tháng vào một ngày cụ thể.
  * Hàm này xử lý trường hợp ngày cuối tháng, ví dụ: 31/01 + 1 tháng = 28/02 (năm thường).
  * @param {Date} date - Ngày bắt đầu.
@@ -489,36 +513,37 @@ function parseDateString(dateString) {
  * Chạy mỗi giây.
  */
 function updateDateTime() {
-  const now = new Date();
-  const julianDay = getJulianDay(now);
+  const now = new Date(); // Giữ lại `new Date()` để hiển thị đồng hồ thời gian thực
+  const businessDate = getBusinessDate(); // Sử dụng ngày sản xuất cho tính toán
+  const julianDay = getJulianDay(businessDate);
   const formattedDate = formatDateWithSlashes(now);
   const formattedTime = now.toTimeString().split(" ")[0];
 
   // Cập nhật ngày giờ hiện tại
   document.getElementById("currentDateTime").textContent =
     `${formattedDate} ${formattedTime}`;
-  // Cập nhật ngày Julian
+  // Cập nhật ngày Julian theo ngày sản xuất
   document.getElementById("julianDaily").textContent = String(
     julianDay,
   ).padStart(3, "0");
-  // Cập nhật batch code ví dụ (không có hậu tố)
+  // Cập nhật batch code ví dụ theo ngày sản xuất
   document.getElementById("currentBatchCode").textContent = formatBatchCode(
-    now,
+    businessDate,
     "",
   );
 }
 
 /**
  * Tính toán và hiển thị tất cả các mã lô và ngày hết hạn cho các sản phẩm.
- * Hàm này sẽ được gọi khi trang tải và vào lúc nửa đêm.
+ * Hàm này sẽ được gọi khi trang tải và vào lúc 5:40 sáng.
  */
 function calculateAndDisplayAll() {
-  const today = new Date();
+  const businessDate = getBusinessDate(); // Sử dụng ngày sản xuất cho tất cả tính toán
 
   // Cập nhật bảng HSD nhanh
   const shelfLives = [9, 10, 12, 15, 18, 24];
   shelfLives.forEach((sl) => {
-    const expiryDate = addMonths(today, sl);
+    const expiryDate = addMonths(businessDate, sl);
     const element = document.getElementById(`expiry-${sl}`);
     if (element) {
       element.textContent = formatDate(expiryDate);
@@ -527,8 +552,8 @@ function calculateAndDisplayAll() {
 
   // Lặp qua mảng sản phẩm và cập nhật thông tin cho từng dòng
   products.forEach((product) => {
-    const expiryDate = addMonths(today, product.shelfLife);
-    const batchCode = formatBatchCode(today, product.batchSuffix);
+    const expiryDate = addMonths(businessDate, product.shelfLife);
+    const batchCode = formatBatchCode(businessDate, product.batchSuffix);
 
     // Cập nhật Batch Code
     const batchEl = document.getElementById(product.batchId);
@@ -546,7 +571,7 @@ function calculateAndDisplayAll() {
       } else {
         expiryEl.textContent = formatCustomExpiry(
           expiryDate,
-          today,
+          businessDate,
           product.batchSuffix,
         );
       }
@@ -557,7 +582,7 @@ function calculateAndDisplayAll() {
       // Cập nhật HSD Bag (tùy nhóm sản phẩm)
       let bagFormat;
       if (product.group === "PSC") {
-        const time = today.toTimeString().substring(0, 5); // Lấy HH:MM
+        const time = businessDate.toTimeString().substring(0, 5); // Lấy HH:MM
         bagFormat = `${formatDateWithSlashes(
           expiryDate,
         )}<br>${time} ${batchCode}`;
@@ -573,7 +598,7 @@ function calculateAndDisplayAll() {
 
       // Cập nhật HSD Carton (tùy nhóm sản phẩm)
       let cartonFormat;
-      const time = today.toTimeString().substring(0, 5); // Lấy HH:MM
+      const time = businessDate.toTimeString().substring(0, 5); // Lấy HH:MM
 
       if (product.group === "PSC") {
         // Định dạng mới cho PSC: Batchcode DD/MM/YYYY HH:MM
@@ -592,21 +617,31 @@ function calculateAndDisplayAll() {
 }
 
 /**
- * Thiết lập bộ đếm thời gian để tự động cập nhật dữ liệu vào lúc nửa đêm.
+ * Thiết lập bộ đếm thời gian để tự động cập nhật dữ liệu vào lúc 5:40 sáng.
  */
 function scheduleDailyUpdate() {
   const now = new Date();
-  const tomorrow = new Date(
+  const nextRun = new Date(
     now.getFullYear(),
     now.getMonth(),
-    now.getDate() + 1,
+    now.getDate(),
+    5,
+    40,
+    0,
+    0,
   );
-  const msUntilMidnight = tomorrow - now;
+
+  // Nếu 5:40 sáng hôm nay đã qua, lên lịch cho ngày mai
+  if (now.getTime() > nextRun.getTime()) {
+    nextRun.setDate(nextRun.getDate() + 1);
+  }
+
+  const msUntilNextRun = nextRun.getTime() - now.getTime();
 
   setTimeout(() => {
-    calculateAndDisplayAll(); // Chạy lần đầu vào nửa đêm
+    calculateAndDisplayAll(); // Chạy lần đầu vào 5:40 sáng
     setInterval(calculateAndDisplayAll, 24 * 60 * 60 * 1000); // Lặp lại mỗi 24 giờ
-  }, msUntilMidnight);
+  }, msUntilNextRun);
 }
 
 // =================================================================================
@@ -879,7 +914,7 @@ async function processImageForValidation(imageBase64) {
   const expectedTextInput = document.getElementById("expectedTextInput");
   const errorMessage = document.getElementById("errorMessage");
 
-  // 1. Cập nhật giao diện ngay lập tức
+  // 1. Cập nhật giao diện ngay lập tức để người dùng thấy phản hồi
   resultContainer.style.display = "block";
   capturedImageDisplay.src = imageBase64;
   statusBadge.className = "alert alert-warning text-center font-weight-bold";
@@ -901,7 +936,7 @@ async function processImageForValidation(imageBase64) {
 
       if (!product) {
         validateOcrResult({ success: false, error: "Product not selected." });
-        return;
+        return; // Thoát sớm nếu không có sản phẩm
       }
 
       const lineName = product.productionLine.toUpperCase();
@@ -923,7 +958,7 @@ async function processImageForValidation(imageBase64) {
       if (!expectedElement) {
         const errorMsg = `Configuration Error: Element ID '${product[expectedElementId]}' not found.`;
         validateOcrResult({ success: false, error: errorMsg });
-        return;
+        return; // Thoát sớm nếu cấu hình lỗi
       }
 
       const expectedTextHTML = expectedElement.innerHTML;
@@ -945,9 +980,10 @@ async function processImageForValidation(imageBase64) {
         expectedText: expectedTextInput.value, // Lấy giá trị đã được điền
       });
     } finally {
+      // Luôn ẩn spinner sau khi hoàn tất
       spinner.style.display = "none";
     }
-  }, 0); // Thời gian trễ 0ms
+  }, 0); // Thời gian trễ 0ms để UI kịp cập nhật
 }
 
 /**
