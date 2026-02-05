@@ -357,7 +357,11 @@ const products = [
  */
 function normalizeString(str) {
   if (!str) return "";
-  return str.replace(/\s+/g, "").toUpperCase();
+  return str
+    .replace(/\s+/g, "") // 1. Loại bỏ tất cả khoảng trắng
+    .replace(/O/g, "0") // 2. Thay thế tất cả ký tự 'O' thành '0'
+    .replace(/\d{2}:\d{2}/g, "") // 3. Loại bỏ phần thời gian (HH:MM)
+    .toUpperCase(); // 4. Chuyển thành chữ hoa
 }
 
 /**
