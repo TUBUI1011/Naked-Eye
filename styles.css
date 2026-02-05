@@ -351,6 +351,7 @@ body {
 }
 
 /* --- HIỆU ỨNG NHẤP NHÁY KHI THÀNH CÔNG --- */
+/*
 .success-flash::after {
   animation: success-pulse 0.6s ease-out !important;
 }
@@ -372,7 +373,7 @@ body {
       0 0 20px rgba(40, 167, 69, 0.6);
   }
 }
-
+*/
 /* === THAY ĐỔI KẾT THÚC TẠI ĐÂY === */
 
 /* THÊM CLASS NÀY VÀO CUỐI FILE */

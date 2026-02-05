@@ -1099,14 +1099,14 @@ function validateOcrResult(result) {
     errorMessage.style.display = "none";
 
     // THÊM HIỆU ỨNG NHẤP NHÁY KHI THÀNH CÔNG
-    const viewfinder = document.getElementById("viewfinder");
-    if (viewfinder) {
-      viewfinder.classList.add("success-flash");
-      // Xóa class sau khi animation kết thúc để có thể nhấp nháy lại lần sau
-      setTimeout(() => {
-        viewfinder.classList.remove("success-flash");
-      }, 600); // 600ms khớp với thời gian của animation
-    }
+    // const viewfinder = document.getElementById("viewfinder");
+    // if (viewfinder) {
+    //   viewfinder.classList.add("success-flash");
+    //   // Xóa class sau khi animation kết thúc để có thể nhấp nháy lại lần sau
+    //   setTimeout(() => {
+    //     viewfinder.classList.remove("success-flash");
+    //   }, 600); // 600ms khớp với thời gian của animation
+    // }
   } else {
     statusBadge.className = "analysis-status-badge badge-danger";
     statusBadge.innerHTML =
