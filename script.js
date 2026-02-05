@@ -446,7 +446,7 @@ function formatDateShortYear(date) {
  * Định dạng ngày hết hạn cho bao bì stick theo yêu cầu: "DD MM YY SuffixDD_prod".
  * @param {Date} expiryDate - Ngày hết hạn.
  * @param {Date} productionDate - Ngày sản xuất.
- * @param {string} suffix - Ký tự hậu tố của sản phẩm (ví dụ: 'L').
+ * @param {string} suffix - Ký tự hậu tố của sản phẩm (ví dụ: 'L'.
  * @returns {string} - Chuỗi ngày hết hạn đã định dạng cho stick.
  */
 function formatCustomExpiry(expiryDate, productionDate, suffix) {
@@ -1030,7 +1030,7 @@ async function processImageForValidation(imageBase64) {
  * BẠN CẦN THAY THẾ NỘI DUNG HÀM NÀY BẰNG LOGIC GỌI API THỰC TẾ.
  * @param {string} imageBase64 - Dữ liệu ảnh base64.
  * @param {string} expectedText - Chuỗi ký tự mong đợi.
- * @param {string} scenario - Kịch bản OCR ('dot', 'solid', 'laser').
+ * @param {string} scenario - Kịch bản OCR ('dot', 'solid', 'laser'.
  * @returns {Promise<object>} - Promise chứa kết quả từ backend.
  */
 async function callValidationApi(imageBase64, expectedText, scenario) {
