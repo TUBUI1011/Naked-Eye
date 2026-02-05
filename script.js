@@ -774,7 +774,10 @@ function startCamera() {
   const captureBtn = document.getElementById("captureBtn");
   const uploadBtn = document.getElementById("uploadBtn");
 
-  // Hiển thị giao diện camera
+  // THÊM CLASS ĐỂ KÍCH HOẠT LỚP PHỦ TỐI
+  document.body.classList.add("camera-overlay-active");
+
+  // Hiển thị giao diện camera và các nút điều khiển
   cameraContainer.style.display = "block";
   startCameraBtn.style.display = "none";
   stopCameraBtn.style.display = "inline-block";
@@ -807,6 +810,9 @@ function stopCamera() {
   const stopCameraBtn = document.getElementById("stopCameraBtn");
   const captureBtn = document.getElementById("captureBtn");
   const uploadBtn = document.getElementById("uploadBtn");
+
+  // XÓA CLASS ĐỂ TẮT LỚP PHỦ TỐI
+  document.body.classList.remove("camera-overlay-active");
 
   // Dừng stream video
   if (video.srcObject) {

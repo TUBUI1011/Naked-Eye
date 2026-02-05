@@ -209,13 +209,20 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  /* --- THAY ĐỔI KÍCH THƯỚC --- */
   width: 95%;
-  max-width: 1000px;
-  height: 350px;
-  box-shadow: 0 0 0 9999px rgba(5, 5, 5, 0.85); /* Lớp phủ tối hơn */
-  border-radius: 28px; /* Tăng bo góc */
+  max-width: 1000px; /* Giữ chiều rộng lớn */
+  height: 250px; /* Giảm chiều cao */
+  /* --- THAY ĐỔI LỚP PHỦ --- */
+  /* box-shadow: 0 0 0 9999px rgba(5, 5, 5, 0.85); Xóa dòng này */
+  border-radius: 28px;
   overflow: hidden;
   z-index: 1;
+}
+
+/* THÊM CLASS MỚI NÀY */
+.camera-overlay-active #viewfinder {
+  box-shadow: 0 0 0 9999px rgba(5, 5, 5, 0.85); /* Chuyển box-shadow vào đây */
 }
 
 /* Đường quét laser và vệt mờ */
