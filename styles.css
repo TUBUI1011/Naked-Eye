@@ -200,15 +200,180 @@ body {
   display: block;
 }
 
+/* === THAY ĐỔI BẮT ĐẦU TỪ ĐÂY === */
+
+/* Khung ngắm chính */
 #viewfinder {
-  border: 2px solid red;
+  border: none;
   position: absolute;
-  top: 10%;
-  left: 10%;
-  width: 80%;
-  height: 80%;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 95%;
+  max-width: 1000px;
+  height: 350px;
+  box-shadow: 0 0 0 9999px rgba(5, 5, 5, 0.85); /* Lớp phủ tối hơn */
+  border-radius: 28px; /* Tăng bo góc */
+  overflow: hidden;
+  z-index: 1;
 }
+
+/* Đường quét laser và vệt mờ */
+#viewfinder::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+
+  /* Đường quét chính */
+  height: 4px;
+  background: #38bdf8; /* Màu xanh cyan mới */
+
+  /* Vệt mờ (trail) và hiệu ứng glow */
+  box-shadow:
+    0 0 25px #38bdf8,
+    0 0 12px #38bdf8,
+    0 -40px 60px -15px rgba(56, 189, 248, 0.5); /* Vệt mờ mạnh hơn */
+
+  animation: scan-move 3.5s ease-in-out infinite;
+}
+
+/* Tạo 4 góc và lớp nền mờ */
+#viewfinder::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+
+  /* 1. Lớp nền mờ bên trong */
+  background-color: rgba(0, 0, 0, 0.4); /* Nền đen mờ */
+
+  /* 2. Vẽ 4 góc bằng nhiều background-image */
+  --corner-size: 56px; /* Góc lớn hơn */
+  --corner-thickness: 5px; /* Góc dày hơn */
+  --corner-color: #38bdf8; /* Màu xanh cyan mới */
+  background-image:
+    linear-gradient(
+      to right,
+      var(--corner-color) var(--corner-thickness),
+      transparent var(--corner-thickness)
+    ),
+    linear-gradient(
+      to bottom,
+      var(--corner-color) var(--corner-thickness),
+      transparent var(--corner-thickness)
+    ),
+    linear-gradient(
+      to left,
+      var(--corner-color) var(--corner-thickness),
+      transparent var(--corner-thickness)
+    ),
+    linear-gradient(
+      to bottom,
+      var(--corner-color) var(--corner-thickness),
+      transparent var(--corner-thickness)
+    ),
+    linear-gradient(
+      to right,
+      var(--corner-color) var(--corner-thickness),
+      transparent var(--corner-thickness)
+    ),
+    linear-gradient(
+      to top,
+      var(--corner-color) var(--corner-thickness),
+      transparent var(--corner-thickness)
+    ),
+    linear-gradient(
+      to left,
+      var(--corner-color) var(--corner-thickness),
+      transparent var(--corner-thickness)
+    ),
+    linear-gradient(
+      to top,
+      var(--corner-color) var(--corner-thickness),
+      transparent var(--corner-thickness)
+    );
+
+  background-repeat: no-repeat;
+  background-size: var(--corner-size) var(--corner-size);
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+
+  /* 3. Thêm hiệu ứng glow cho góc và viền */
+  box-shadow:
+    inset 0 0 0 1px rgba(56, 189, 248, 0.4),
+    /* Viền trong mờ */ 0 0 20px rgba(56, 189, 248, 0.6); /* Glow lan tỏa ra ngoài */
+
+  animation: pulse-corner 3.5s ease-in-out infinite;
+}
+
+/* --- CÁC KEYFRAMES ANIMATION --- */
+
+/* Di chuyển đường quét */
+@keyframes scan-move {
+  0%,
+  100% {
+    top: 0%;
+  }
+  50% {
+    top: 100%;
+  }
+}
+
+/* Hiệu ứng nhấp nháy cho các góc */
+@keyframes pulse-corner {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1.2);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.99);
+    filter: brightness(1);
+  }
+}
+
+/* Xóa animation không dùng đến */
+@keyframes scan-vertical {
+}
+@keyframes wave-glow {
+}
+
+/* --- HIỆU ỨNG NHẤP NHÁY KHI THÀNH CÔNG --- */
+.success-flash::after {
+  animation: success-pulse 0.6s ease-out !important;
+}
+
+@keyframes success-pulse {
+  0% {
+    box-shadow:
+      inset 0 0 0 2px rgba(40, 167, 69, 0.7),
+      0 0 20px rgba(40, 167, 69, 0.6);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 4px rgba(40, 167, 69, 1),
+      0 0 40px 10px rgba(40, 167, 69, 1);
+  }
+  100% {
+    box-shadow:
+      inset 0 0 0 2px rgba(40, 167, 69, 0.7),
+      0 0 20px rgba(40, 167, 69, 0.6);
+  }
+}
+
+/* === THAY ĐỔI KẾT THÚC TẠI ĐÂY === */
 
 /* THÊM CLASS NÀY VÀO CUỐI FILE */
 .btn-disabled {

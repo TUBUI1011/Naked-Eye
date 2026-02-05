@@ -1070,39 +1070,8 @@ async function callValidationApi(imageBase64, expectedText, scenario) {
 
 /**
  * Hiển thị kết quả PASSED/FAILED trả về từ backend vào khu vực kết quả mới.
- * @param {object} result - Đối tượng kết quả từ backend.
+ * @param {object} result - Đối tượng kết quả từ API OCR.
  */
-/*function validateOcrResult(result) {
-  const statusBadge = document.getElementById("statusBadge");
-  const detectedTextInput = document.getElementById("detectedTextInput");
-  const errorMessage = document.getElementById("errorMessage");
-
-  // Điền text mà AI đọc được vào ô input
-  detectedTextInput.value = result.foundText || "";
-  errorMessage.style.display = "none"; // Ẩn lỗi cũ
-
-
-
-  if (result.success) {
-    statusBadge.className = "alert alert-success text-center font-weight-bold";
-    statusBadge.innerHTML =
-      '<h1><i class="fas fa-check-circle"></i> PASSED</h1>';
-    detectedTextInput.classList.add("is-valid");
-    detectedTextInput.classList.remove("is-invalid");
-  } else {
-    statusBadge.className = "alert alert-danger text-center font-weight-bold";
-    statusBadge.innerHTML =
-      '<h1><i class="fas fa-times-circle"></i> FAILED</h1>';
-
-    detectedTextInput.classList.add("is-invalid");
-    detectedTextInput.classList.remove("is-valid");
-
-    if (result.error) {
-      errorMessage.textContent = `Reason: ${result.error}`;
-      errorMessage.style.display = "block";
-    }
-  }
-}*/
 function validateOcrResult(result) {
   const statusBadge = document.getElementById("statusBadge");
   const detectedTextInput = document.getElementById("detectedTextInput");
@@ -1121,13 +1090,25 @@ function validateOcrResult(result) {
 
   // Sử dụng kết quả so sánh 'isMatch' thay vì 'result.success'
   if (isMatch) {
-    statusBadge.className = "alert alert-success text-center font-weight-bold";
+    statusBadge.className = "analysis-status-badge badge-success";
     statusBadge.innerHTML =
       '<h1><i class="fas fa-check-circle"></i> PASSED</h1>';
+
     detectedTextInput.classList.add("is-valid");
     detectedTextInput.classList.remove("is-invalid");
+    errorMessage.style.display = "none";
+
+    // THÊM HIỆU ỨNG NHẤP NHÁY KHI THÀNH CÔNG
+    const viewfinder = document.getElementById("viewfinder");
+    if (viewfinder) {
+      viewfinder.classList.add("success-flash");
+      // Xóa class sau khi animation kết thúc để có thể nhấp nháy lại lần sau
+      setTimeout(() => {
+        viewfinder.classList.remove("success-flash");
+      }, 600); // 600ms khớp với thời gian của animation
+    }
   } else {
-    statusBadge.className = "alert alert-danger text-center font-weight-bold";
+    statusBadge.className = "analysis-status-badge badge-danger";
     statusBadge.innerHTML =
       '<h1><i class="fas fa-times-circle"></i> FAILED</h1>';
 
