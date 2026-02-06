@@ -1301,6 +1301,7 @@ const UI_ELEMENTS = {
   BATCH_INPUT: "batchInput",
   EXPIRY_INPUT: "expiryInput",
   SHELF_LIFE_SELECT: "shelfLifeSelect",
+  CAMERA_OVERLAY: "cameraOverlay", // Thêm ID của lớp phủ
 };
 
 // sử dụng: document.getElementById(UI_ELEMENTS.AREA_SELECT)
