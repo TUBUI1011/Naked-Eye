@@ -190,7 +190,6 @@ body {
   width: 90%;
   max-width: 600px;
   height: 120px;
-  
   margin: 0;
   border: 2px solid #38bdf8;
   border-radius: 15px;
@@ -230,12 +229,12 @@ body {
   position: relative;
   display: none; /* Ẩn ban đầu */
   /* Thay đổi kích thước để vừa vặn hơn */
-  width: 95%;
-  max-width: 1000px; /* Giữ chiều rộng lớn */
-  height: 250px; /* Giảm chiều cao */
+  width: 90%;
+  max-width: 600px; /* Giữ chiều rộng lớn */
+  height: 120px; /* Giảm chiều cao */
   margin: 0; /* Xóa margin cũ */
-  border: none; /* Xóa viền cũ */
-  border-radius: 28px; /* Bo góc khớp với viewfinder */
+  border: 2px solid #38bdf8; /* Xóa viền cũ */
+  border-radius: 15px; /* Bo góc khớp với viewfinder */
   overflow: hidden; /* Đảm bảo video không tràn ra ngoài */
   z-index: 1001; /* Phải cao hơn lớp phủ */
   display: flex;
@@ -262,7 +261,7 @@ body {
   height: 100%; /* Chiếm toàn bộ chiều cao của #cameraFeed */
   /* --- KHÔNG CẦN LỚP PHỦ Ở ĐÂY --- */
   /* box-shadow: 0 0 0 9999px rgba(5, 5, 5, 0.85); Xóa dòng này */
-  border-radius: 28px;
+  border-radius: 15px;
   overflow: hidden;
   z-index: 1;
 }
@@ -303,8 +302,8 @@ body {
   background-color: rgba(0, 0, 0, 0.4); /* Nền đen mờ */
 
   /* 2. Vẽ 4 góc bằng nhiều background-image */
-  --corner-size: 56px; /* Góc lớn hơn */
-  --corner-thickness: 5px; /* Góc dày hơn */
+  --corner-size: 30px; /* Góc lớn hơn */
+  --corner-thickness: 4px; /* Góc dày hơn */
   --corner-color: #38bdf8; /* Màu xanh cyan mới */
   background-image:
     linear-gradient(
