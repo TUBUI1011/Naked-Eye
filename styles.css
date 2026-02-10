@@ -188,11 +188,11 @@ body {
   position: relative;
   display: none; /* Ẩn ban đầu */
   width: 90%;
-  max-width: 600px;
+  max-width: 500px;
   height: 120px;
   margin: 0;
   border: 2px solid #38bdf8;
-  border-radius: 15px;
+  border-radius: 16px;
   overflow: hidden; /* Đảm bảo video không tràn ra ngoài */
   z-index: 1001; /* Phải cao hơn lớp phủ */
   display: flex;
@@ -230,11 +230,11 @@ body {
   display: none; /* Ẩn ban đầu */
   /* Thay đổi kích thước để vừa vặn hơn */
   width: 90%;
-  max-width: 600px; /* Giữ chiều rộng lớn */
+  max-width: 500px; /* Giữ chiều rộng lớn */
   height: 120px; /* Giảm chiều cao */
   margin: 0; /* Xóa margin cũ */
   border: 2px solid #38bdf8; /* Xóa viền cũ */
-  border-radius: 15px; /* Bo góc khớp với viewfinder */
+  border-radius: 16px; /* Bo góc khớp với viewfinder */
   overflow: hidden; /* Đảm bảo video không tràn ra ngoài */
   z-index: 1001; /* Phải cao hơn lớp phủ */
   display: flex;
