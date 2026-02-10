@@ -187,12 +187,12 @@ body {
 #cameraFeed {
   position: relative;
   display: none; /* Ẩn ban đầu */
-  width: 90%;
-  max-width: 500px;
-  height: 120px;
-  margin: 0;
+  width: 95%;
+  max-width: 800px;
+  height: 400px;
+  margin: 1rem auto;
   border: 2px solid #38bdf8;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden; /* Đảm bảo video không tràn ra ngoài */
   z-index: 1001; /* Phải cao hơn lớp phủ */
   display: flex;
@@ -257,13 +257,13 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   /* --- THAY ĐỔI KÍCH THƯỚC --- */
-  width: 100%; /* Chiếm toàn bộ chiều rộng của #cameraFeed */
-  height: 100%; /* Chiếm toàn bộ chiều cao của #cameraFeed */
+  width: 60%; /* Chiếm toàn bộ chiều rộng của #cameraFeed */
+  height: 30%; /* Chiếm toàn bộ chiều cao của #cameraFeed */
   /* --- KHÔNG CẦN LỚP PHỦ Ở ĐÂY --- */
   /* box-shadow: 0 0 0 9999px rgba(5, 5, 5, 0.85); Xóa dòng này */
-  border-radius: 15px;
+  border-radius: 12px;
   overflow: hidden;
-  z-index: 1;
+  z-index: 10;
 }
 
 /* Xóa class không cần thiết */
@@ -296,13 +296,13 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 28px;
+  border-radius: 12px;
 
   /* 1. Lớp nền mờ bên trong */
   background-color: rgba(0, 0, 0, 0.4); /* Nền đen mờ */
 
   /* 2. Vẽ 4 góc bằng nhiều background-image */
-  --corner-size: 30px; /* Góc lớn hơn */
+  --corner-size: 25px; /* Góc lớn hơn */
   --corner-thickness: 4px; /* Góc dày hơn */
   --corner-color: #38bdf8; /* Màu xanh cyan mới */
   background-image:
