@@ -184,21 +184,7 @@ body {
   }
 }
 
-#cameraFeed {
-  position: relative;
-  display: none; /* Ẩn ban đầu */
-  width: 95%;
-  max-width: 800px;
-  height: 450px;
-  margin: 1rem auto;
-  border: 1px solid rgpa(255, 255,255, 0.2);
-  border-radius: 20px;
-  overflow: hidden; /* Đảm bảo video không tràn ra ngoài */
-  z-index: 1001; /* Phải cao hơn lớp phủ */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+
 
 #videoElement {
   width: 100%; /* Giảm chiều rộng đi 30% */
@@ -240,6 +226,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+}
 
 #videoElement {
   /* Video sẽ lấp đầy khung chứa mới */
@@ -251,20 +238,20 @@ body {
 
 /* Khung ngắm chính */
 #viewfinder {
-  border: none;
+  
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   /* --- THAY ĐỔI KÍCH THƯỚC --- */
   width: 66.6%; /* Chiếm toàn bộ chiều rộng của #cameraFeed */
-  height: 28%; /* Chiếm toàn bộ chiều cao của #cameraFeed */
+  height: 30%; /* Chiếm toàn bộ chiều cao của #cameraFeed */
   /* --- KHÔNG CẦN LỚP PHỦ Ở ĐÂY --- */
   /* box-shadow: 0 0 0 9999px rgba(5, 5, 5, 0.85); Xóa dòng này */
   border-radius: 12px;
   overflow: hidden;
   z-index: 10;
-  pointer-event: none; /*Đảm bảo không cản trở lấy nét của camera*/
+  
 }
 
 /* Xóa class không cần thiết */
