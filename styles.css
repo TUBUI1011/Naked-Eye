@@ -192,10 +192,13 @@ body {
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden; /* Đảm bảo video không tràn ra ngoài */
+  z-index: 1001; /* Phải cao hơn lớp phủ */
+  display: flex;
+  justify-content: center;
 }
 
 #videoElement {
-  width: 100%;
+  width: 70%; /* Giảm chiều rộng đi 30% */
   height: auto;
   display: block;
 }
@@ -224,10 +227,12 @@ body {
   border-radius: 8px;
   overflow: hidden; /* Đảm bảo video không tràn ra ngoài */
   z-index: 1001; /* Phải cao hơn lớp phủ */
+  display: flex;
+  justify-content: center;
 }
 
 #videoElement {
-  width: 100%;
+  width: 70%; /* Giảm chiều rộng đi 30% */
   height: auto;
   display: block;
 }
