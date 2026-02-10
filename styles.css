@@ -215,16 +215,24 @@ body {
   background-color: rgba(0, 0, 0, 0.85);
   z-index: 1000; /* Đảm bảo nó ở trên cùng */
   display: none; /* Ẩn ban đầu */
+  /* Thêm các thuộc tính này để căn giữa nội dung */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Khung chứa camera và viewfinder */
 #cameraFeed {
   position: relative;
   display: none; /* Ẩn ban đầu */
-  max-width: 100%;
-  margin: 1rem auto;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  /* Thay đổi kích thước để vừa vặn hơn */
+  width: 95%;
+  max-width: 1000px; /* Giữ chiều rộng lớn */
+  height: 250px; /* Giảm chiều cao */
+  margin: 0; /* Xóa margin cũ */
+  border: none; /* Xóa viền cũ */
+  border-radius: 28px; /* Bo góc khớp với viewfinder */
   overflow: hidden; /* Đảm bảo video không tràn ra ngoài */
   z-index: 1001; /* Phải cao hơn lớp phủ */
   display: flex;
@@ -232,8 +240,10 @@ body {
 }
 
 #videoElement {
-  width: 70%; /* Giảm chiều rộng đi 30% */
-  height: auto;
+  /* Video sẽ lấp đầy khung chứa mới */
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Đảm bảo video lấp đầy mà không bị méo */
   display: block;
 }
 
@@ -245,9 +255,8 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   /* --- THAY ĐỔI KÍCH THƯỚC --- */
-  width: 95%;
-  max-width: 1000px; /* Giữ chiều rộng lớn */
-  height: 250px; /* Giảm chiều cao */
+  width: 100%; /* Chiếm toàn bộ chiều rộng của #cameraFeed */
+  height: 100%; /* Chiếm toàn bộ chiều cao của #cameraFeed */
   /* --- KHÔNG CẦN LỚP PHỦ Ở ĐÂY --- */
   /* box-shadow: 0 0 0 9999px rgba(5, 5, 5, 0.85); Xóa dòng này */
   border-radius: 28px;
